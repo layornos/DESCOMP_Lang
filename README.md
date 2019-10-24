@@ -1,7 +1,8 @@
 # Bachelorarbeit Eric Hamann
 
 ## Fragestellung(en)
-* 
+* What is the metamodel representation of the smt syntax?
+* Can the syntax be simplified in order to ease the handling of describing condition functions etc.?
 
 ## Software Quellen
 * [Palladio Update Site](https://sdqweb.ipd.kit.edu/eclipse/palladiosimulator/nightly/)
