@@ -1,0 +1,19 @@
+Manifest-Version: 1.0
+Automatic-Module-Name: edu.kit.ipd.sdq.modsim.simspec.language.ui.test
+ s
+Bundle-SymbolicName: edu.kit.ipd.sdq.modsim.simspec.language.ui.tests;
+  singleton:=true
+Export-Package: edu.kit.ipd.sdq.modsim.simspec.language.ui.tests;x-int
+ ernal=true
+Bundle-Name: edu.kit.ipd.sdq.modsim.simspec.language.ui.tests
+Bundle-Version: 1.0.0.202001222204
+Require-Bundle: edu.kit.ipd.sdq.modsim.simspec.language.ui,org.junit.j
+ upiter.api;bundle-version="[5.0.0,6.0.0)",org.eclipse.xtext.testing,o
+ rg.eclipse.xtext.xbase.testing,org.eclipse.xtext.junit4,org.eclipse.x
+ text.xbase.junit,org.eclipse.core.runtime,org.eclipse.ui.workbench;re
+ solution:=optional
+Bundle-ManifestVersion: 2
+Bundle-ActivationPolicy: lazy
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-Vendor: My Company
+

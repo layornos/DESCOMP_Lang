@@ -1,0 +1,18 @@
+Manifest-Version: 1.0
+Automatic-Module-Name: edu.kit.ipd.sdq.modsim.simspec.model.general
+Bundle-SymbolicName: edu.kit.ipd.sdq.modsim.simspec.model.general;sing
+ leton:=true
+Require-Bundle: org.eclipse.emf.ecore;visibility:=reexport,org.eclipse
+ .core.runtime
+Bundle-ManifestVersion: 2
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-ActivationPolicy: lazy
+Bundle-Vendor: %providerName
+Export-Package: edu.kit.ipd.sdq.modsim.simspec.model.general,edu.kit.i
+ pd.sdq.modsim.simspec.model.general.impl,edu.kit.ipd.sdq.modsim.simsp
+ ec.model.general.util
+Bundle-Name: %pluginName
+Bundle-Version: 0.1.0.202001222204
+Bundle-ClassPath: .
+Bundle-Localization: plugin
+
