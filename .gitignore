@@ -1,4 +1,0 @@
-# Ignore generated code but keep ignoreme files for empty xyz-gen folders
-src-gen/
-xtend-gen/
-\!ignoreme
