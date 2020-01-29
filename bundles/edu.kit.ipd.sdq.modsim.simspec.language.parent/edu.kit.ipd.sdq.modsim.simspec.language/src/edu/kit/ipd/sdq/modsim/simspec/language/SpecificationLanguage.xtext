@@ -1,0 +1,98 @@
+grammar edu.kit.ipd.sdq.modsim.simspec.language.SpecificationLanguage with org.eclipse.xtext.common.Terminals
+
+import "http://www.example.org/structure" as structure
+import "http://www.example.org/datatypes" as datatypes
+import "http://www.example.org/behavior" as behavior
+import "http://www.example.org/expressions" as expr
+import "http://www.eclipse.org/emf/2002/Ecore" as ecore
+
+generate specificationLanguage "http://www.kit.edu/ipd/sdq/modsim/simspec/language/SpecificationLanguage"
+
+Simulator returns structure::Simulator:
+	(('name' '=' name=STRING) & ('description' '=' description=STRING)?)
+	(events+=Event | entities+=Entity)*;
+	
+Event returns structure::Event:
+	'event' name=ID ('{'
+		('reads' readAttributes+=[structure::Attribute|QualifiedName] (',' readAttributes+=[structure::Attribute|QualifiedName])*)?
+	'}')?
+	|
+	('event' {GEvent} name=ID '{'
+		('reads' readAttributes+=[structure::Attribute|QualifiedName] (',' readAttributes+=[structure::Attribute|QualifiedName])*)?
+		
+		(schedules+=GSchedules | writeAttributes+=GWritesAttribute)+
+	'}')
+;
+	
+Entity returns structure::Entity:
+	'entity' name=ID ('{'
+		(attributes+=Attribute)*
+	'}')?;
+	
+Attribute returns structure::Attribute:
+	name=ID ':' type=Type;
+	
+Type returns datatypes::BaseDataType: {datatypes::BaseDataType} primitiveType=PrimitiveType;
+
+enum PrimitiveType returns datatypes::PrimitiveType: INT | DOUBLE | BOOL;
+
+
+
+GSchedules: 
+	'schedules' endEvent=[structure::Event]
+	(delaySpec=Delay? & (conditionSpec=Condition)?);
+	
+GWritesAttribute: 
+	'writes' writeFunction=WriteFunction 
+	(conditionSpec=Condition)?;
+	
+Delay: 'with' 'delay' '=' delay=Expression;
+Condition: 'when' condition=Expression;
+WriteFunction: attribute=[structure::Attribute|QualifiedName] '=' value=Expression;
+
+
+enum Comp returns expr::Comparator: EQUAL = '==' | LESS_THAN = '<' | LESS_THAN_EQUAL = '<=' | GREATER_THAN = '>' | GREATER_THAN_EQUAL = '>=';
+enum OpPlusMinus returns expr::Operator: PLUS = '+' | MINUS = '-';
+enum OpMultDiv returns expr::Operator: MULT = '*' | DIV = '/'; 
+
+
+Expression returns behavior::Expression: 
+	Comparison | IfThenElse;
+	
+IfThenElse returns expr::IfThenElse:
+	'if' condition=Expression 
+	'then' thenBranch=Expression 
+	(=> 'else' elseBranch=Expression);
+	
+Comparison returns behavior::Expression:
+	Addition (({expr::Comparison.left=current} comparator=Comp) right=Addition)*;
+	
+Addition returns behavior::Expression:
+	Multiplication (({expr::Operation.left=current} operator=OpPlusMinus) right=Multiplication)*; 
+
+Multiplication returns behavior::Expression:
+	Prefixed (({expr::Operation.left=current} operator=OpMultDiv) right=Prefixed)*;
+
+Prefixed returns behavior::Expression:
+	//{BooleanNegation} =>"!" expression=Atomic | /* right associativity */
+	//{ArithmeticSigned} =>"-" expression=Atomic | /* right associativity */
+	Atomic
+;
+
+Atomic returns behavior::Expression:
+	'(' Expression ')' | 
+	Constant | 
+	{expr::Variable} attribute=[structure::Attribute];
+
+Constant returns expr::Constant: 
+	{IntLiteral} value=S_INT |
+	{DoubleLiteral} value=DOUBLE |
+	{BoolLiteral} value=BOOL;
+
+
+QualifiedName:
+    ID ('.' ID)*;
+
+S_INT: INT;
+DOUBLE: INT (('.' INT+) | ('d' | 'D') | (('.' INT+) ('d' | 'D')));
+BOOL: 'true' | 'false';

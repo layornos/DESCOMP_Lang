@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.0"?>
+
+<!--
+-->
+
+<plugin>
+
+   <extension point="org.eclipse.emf.ecore.generated_package">
+      <!-- @generated structure -->
+      <package
+            uri="http://www.example.org/structure"
+            class="edu.kit.ipd.sdq.modsim.simspec.model.structure.StructurePackage"
+            genModel="model/structure.genmodel"/>
+   </extension>
+
+</plugin>

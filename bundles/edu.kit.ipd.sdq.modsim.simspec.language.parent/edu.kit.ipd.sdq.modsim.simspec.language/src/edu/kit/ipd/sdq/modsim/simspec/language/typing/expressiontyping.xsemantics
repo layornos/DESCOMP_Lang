@@ -1,0 +1,145 @@
+import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.BoolLiteral
+import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.Condition
+import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.Delay
+import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.DoubleLiteral
+import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.IntLiteral
+import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.WriteFunction
+import edu.kit.ipd.sdq.modsim.simspec.language.validation.AbstractSpecificationLanguageValidator
+import edu.kit.ipd.sdq.modsim.simspec.model.behavior.Expression
+import edu.kit.ipd.sdq.modsim.simspec.model.datatypes.DataType
+import edu.kit.ipd.sdq.modsim.simspec.model.expressions.Operation
+import edu.kit.ipd.sdq.modsim.simspec.model.expressions.Variable
+
+import static extension edu.kit.ipd.sdq.modsim.simspec.language.typing.TypeUtil.*
+import edu.kit.ipd.sdq.modsim.simspec.model.expressions.Comparison
+import edu.kit.ipd.sdq.modsim.simspec.model.expressions.Comparator
+import edu.kit.ipd.sdq.modsim.simspec.model.expressions.IfThenElse
+import org.eclipse.emf.ecore.util.EcoreUtil
+
+system edu.kit.ipd.sdq.modsim.simspec.language.typing.ExpressionTyping
+
+validatorExtends AbstractSpecificationLanguageValidator
+
+judgments {
+	type |- Expression expression : output DataType
+		error "cannot type " + stringRep(expression)
+		source expression
+	
+	delay |- Delay delay
+	cond ||- Condition cond
+	writeFunction |= WriteFunction write
+}
+
+axiom IntLiteral
+	G |- IntLiteral literal : createIntType
+	
+axiom DoubleLiteral
+	G |- DoubleLiteral literal : createDoubleType
+	
+axiom BoolLiteral
+	G |- BoolLiteral literal : createBoolType
+	
+axiom Variable
+	G |- Variable variable : EcoreUtil.copy(variable.attribute.type) 
+
+
+rule Operation
+	G |- Operation op : DataType type
+from {
+	G |- op.left : var DataType leftType
+	G |- op.right : var DataType rightType
+	
+	leftType.isNumberType && rightType.isNumberType
+	type = combinedType(leftType, rightType)
+}
+
+rule Comparison
+	G |-  Comparison comp: DataType type
+from {
+	G |- comp.left : var DataType leftType
+	G |- comp.right : var DataType rightType
+	
+	{
+		(comp.comparator == Comparator.EQUAL && compatible(leftType, rightType))
+		type = createBoolType
+	} or {
+		leftType.isNumberType && rightType.isNumberType
+		type = createBoolType
+	}
+}
+
+rule IfThenElse
+	G |- IfThenElse ite: DataType type
+from {
+	G |- ite.^condition : var DataType conditionType
+	G |- ite.thenBranch : var DataType thenType
+	G |- ite.elseBranch : var DataType elseType
+	
+	conditionType.isBoolType && compatible(thenType, elseType)
+	type = combinedType(thenType, elseType)
+}
+
+
+
+
+rule Delay
+	G |- Delay delay
+from {
+	G |- delay.delay : var DataType delayType
+	
+	delayType.isNumberType
+	or {
+		fail error 'Delay must be a number' source delay.delay
+	}
+}
+
+rule Condition
+	G ||- Condition cond
+from {
+	G |- cond.^condition : var DataType conditionType
+	
+	conditionType.isBoolType
+	or {
+		fail error 'Delay must be a boolean' source cond.^condition
+	}
+}
+
+rule Writes
+	G |= WriteFunction writes
+from {
+	G |- writes.value : var DataType valueType
+	
+	val attrType = writes.attribute.type
+	compatible(valueType, attrType)
+	or {
+		fail error 'Incompatible types: Expected ' + attrType + ' but found ' + valueType  source writes.value
+	}
+}
+
+
+
+
+
+
+
+checkrule CheckAllDelays for
+	Delay delay
+from { empty |- delay }
+
+checkrule CheckAllConditions for
+	Condition cond
+from { empty ||- cond }
+
+checkrule CheckAllWrites for
+	WriteFunction write
+from { empty |= write }
+
+
+checkrule CheckVariable for
+	Expression expression
+from {
+	empty |- expression : var DataType type
+	
+	//expression.type = EcoreUtil.copy(type)
+	expression.type = type
+}

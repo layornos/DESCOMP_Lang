@@ -1,0 +1,26 @@
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>edu.kit.ipd.sdq.modsim.simspec</groupId>
+    <artifactId>edu.kit.ipd.sdq.modsim.simspec.bundles</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <parent>
+        <groupId>edu.kit.ipd.sdq.modsim.simspec</groupId>
+        <artifactId>edu.kit.ipd.sdq.modsim.simspec.root</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+
+    <modules>
+        <!-- <module>TODO:make</module> -->
+        <module>edu.kit.ipd.sdq.modsim.simspec.model.datatypes</module>
+        <module>edu.kit.ipd.sdq.modsim.simspec.model.general</module>
+        <module>edu.kit.ipd.sdq.modsim.simspec.model.structure</module>
+        <module>edu.kit.ipd.sdq.modsim.simspec.model.behavior</module>
+        <module>edu.kit.ipd.sdq.modsim.simspec.model.expressions</module>
+        <module>edu.kit.ipd.sdq.modsim.simspec.plugin</module>
+        <module>edu.kit.ipd.sdq.modsim.simspec.export</module>
+        <module>edu.kit.ipd.sdq.modsim.simspec.language.parent</module>
+    </modules>
+    
+</project>

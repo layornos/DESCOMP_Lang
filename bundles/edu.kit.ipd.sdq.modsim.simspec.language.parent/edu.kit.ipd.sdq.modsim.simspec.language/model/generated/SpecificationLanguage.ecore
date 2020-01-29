@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="specificationLanguage" nsURI="http://www.kit.edu/ipd/sdq/modsim/simspec/language/SpecificationLanguage"
+    nsPrefix="specificationLanguage">
+  <eClassifiers xsi:type="ecore:EClass" name="GSchedules">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="endEvent" eType="ecore:EClass platform:/resource/edu.kit.ipd.sdq.modsim.simspec.model.structure/model/structure.ecore#//Event"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="delaySpec" eType="#//Delay"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="conditionSpec" eType="#//Condition"
+        containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="GWritesAttribute">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="writeFunction" eType="#//WriteFunction"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="conditionSpec" eType="#//Condition"
+        containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Delay">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="delay" eType="ecore:EClass platform:/resource/edu.kit.ipd.sdq.modsim.simspec.model.behavior/model/behavior.ecore#//Expression"
+        containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Condition">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="condition" eType="ecore:EClass platform:/resource/edu.kit.ipd.sdq.modsim.simspec.model.behavior/model/behavior.ecore#//Expression"
+        containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="WriteFunction">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="attribute" eType="ecore:EClass platform:/resource/edu.kit.ipd.sdq.modsim.simspec.model.structure/model/structure.ecore#//Attribute"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="value" eType="ecore:EClass platform:/resource/edu.kit.ipd.sdq.modsim.simspec.model.behavior/model/behavior.ecore#//Expression"
+        containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="GEvent" eSuperTypes="platform:/resource/edu.kit.ipd.sdq.modsim.simspec.model.structure/model/structure.ecore#//Event">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="schedules" upperBound="-1"
+        eType="#//GSchedules" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="writeAttributes" upperBound="-1"
+        eType="#//GWritesAttribute" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="IntLiteral" eSuperTypes="platform:/resource/edu.kit.ipd.sdq.modsim.simspec.model.expressions/model/expressions.ecore#//Constant"/>
+  <eClassifiers xsi:type="ecore:EClass" name="DoubleLiteral" eSuperTypes="platform:/resource/edu.kit.ipd.sdq.modsim.simspec.model.expressions/model/expressions.ecore#//Constant"/>
+  <eClassifiers xsi:type="ecore:EClass" name="BoolLiteral" eSuperTypes="platform:/resource/edu.kit.ipd.sdq.modsim.simspec.model.expressions/model/expressions.ecore#//Constant"/>
+</ecore:EPackage>
