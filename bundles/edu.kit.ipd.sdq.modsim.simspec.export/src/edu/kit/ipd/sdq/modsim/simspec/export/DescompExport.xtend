@@ -31,9 +31,13 @@ class DescompExport {
 		val sim = resource.contents.filter(Simulator).head
 		val behavior = resource.contents.filter(BehaviorContainer).head
 		
+		
+		
+		val generator = new SMTGenerator(sim)
+		
 		val simExport = sim.export
-		val schedules = behavior.schedules.map[exportSchedules]
-		val writes = behavior.writesAttributes.map[exportWritesAttribute]
+		val schedules = behavior.schedules.map[exportSchedules(generator)]
+		val writes = behavior.writesAttributes.map[exportWritesAttribute(generator)]
 		
 		// save to database
 		val config = new Configuration.Builder()
@@ -48,7 +52,7 @@ class DescompExport {
 		
 		//val conflicting = session.loadAll(DataSimulator, new Filter('name', ComparisonOperator.EQUALS, simExport.name), 4)
 		//session.delete(conflicting)
-		session.purgeDatabase
+		//session.purgeDatabase
 		
 		session.save(simExport)
 		session.save(schedules)
@@ -59,25 +63,23 @@ class DescompExport {
 		factory.close
 	}
 	
-	def exportSchedules(Schedules schedules) {
+	def exportSchedules(Schedules schedules, SMTGenerator generator) {
 		new DescompSchedules => [
 			startEvent = schedules.startEvent.export
 			endEvent = schedules.endEvent.export
 		
-			//TODO: create smt code
-			delay = '(assert (= delay 0.0))'
-			condition = '(assert true)'	
+			delay = generator.generateDelay(schedules.delay)
+			condition = generator.generateCondition(schedules.condition)
 		]
 	}
 	
-	def exportWritesAttribute(WritesAttribute writes) {
+	def exportWritesAttribute(WritesAttribute writes, SMTGenerator generator) {
 		new DescompWritesAttribute => [
 			startEvent = writes.event.export
 			attribute = writes.attribute.export
 			
-			//TODO: create smt code
-			writeFunction = '(assert (= value 0.0))'
-			condition = '(assert true)'	
+			writeFunction = generator.generateWritesAttribute(writes.attribute, writes.writeFunction)
+			condition = generator.generateCondition(writes.condition)
 		]
 	}
 	

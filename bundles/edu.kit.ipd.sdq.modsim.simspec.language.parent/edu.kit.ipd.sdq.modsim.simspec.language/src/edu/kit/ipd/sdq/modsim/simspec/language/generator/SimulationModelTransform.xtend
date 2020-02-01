@@ -1,25 +1,23 @@
 package edu.kit.ipd.sdq.modsim.simspec.language.generator
 
-import edu.kit.ipd.sdq.modsim.simspec.model.structure.Simulator
-import org.eclipse.emf.ecore.resource.Resource
-import org.eclipse.emf.ecore.EObject
-import java.util.List
-import edu.kit.ipd.sdq.modsim.simspec.model.structure.StructureFactory
-import edu.kit.ipd.sdq.modsim.simspec.model.structure.Event
 import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.GEvent
-import edu.kit.ipd.sdq.modsim.simspec.model.general.NamedIdentifier
-import edu.kit.ipd.sdq.modsim.simspec.model.behavior.BehaviorFactory
-import edu.kit.ipd.sdq.modsim.simspec.model.behavior.Expression
-import org.eclipse.emf.ecore.util.EcoreUtil
-import edu.kit.ipd.sdq.modsim.simspec.model.behavior.BehaviorContainer
-import edu.kit.ipd.sdq.modsim.simspec.model.expressions.Constant
-import edu.kit.ipd.sdq.modsim.simspec.model.expressions.ExpressionsFactory
 import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.GSchedules
 import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.GWritesAttribute
 import edu.kit.ipd.sdq.modsim.simspec.language.typing.TypeUtil
+import edu.kit.ipd.sdq.modsim.simspec.model.behavior.BehaviorContainer
+import edu.kit.ipd.sdq.modsim.simspec.model.behavior.BehaviorFactory
+import edu.kit.ipd.sdq.modsim.simspec.model.behavior.Expression
+import edu.kit.ipd.sdq.modsim.simspec.model.expressions.ExpressionsFactory
+import edu.kit.ipd.sdq.modsim.simspec.model.general.NamedIdentifier
+import edu.kit.ipd.sdq.modsim.simspec.model.structure.Event
+import edu.kit.ipd.sdq.modsim.simspec.model.structure.Simulator
+import edu.kit.ipd.sdq.modsim.simspec.model.structure.StructureFactory
+import java.util.List
+import org.eclipse.emf.ecore.EObject
+import org.eclipse.emf.ecore.resource.Resource
 
 class SimulationModelTransform {
-	final Resource source
+	val Resource source
 
 	BehaviorContainer behavior
 
@@ -75,12 +73,10 @@ class SimulationModelTransform {
 	}
 
 	private def copyExpression(Expression expr) {
-		if (expr instanceof Constant)
-			return ExpressionsFactory.eINSTANCE.createConstant => [
-				value = expr.value 
-				type = expr.type
-			]
-		EcoreUtil.copy(expr)
+		val copier = new ExpressionCopier();
+    	val result = copier.copy(expr);
+    	copier.copyReferences();
+    	return result as Expression
 	}
 	
 	private def createDefaultDelay() {
