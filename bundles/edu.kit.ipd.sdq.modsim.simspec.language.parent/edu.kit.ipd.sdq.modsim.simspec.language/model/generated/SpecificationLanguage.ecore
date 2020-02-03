@@ -28,11 +28,21 @@
     <eStructuralFeatures xsi:type="ecore:EReference" name="value" eType="ecore:EClass platform:/resource/edu.kit.ipd.sdq.modsim.simspec.model.behavior/model/behavior.ecore#//Expression"
         containment="true"/>
   </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Definition">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="expression" eType="ecore:EClass platform:/resource/edu.kit.ipd.sdq.modsim.simspec.model.behavior/model/behavior.ecore#//Expression"
+        containment="true"/>
+  </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="GEvent" eSuperTypes="platform:/resource/edu.kit.ipd.sdq.modsim.simspec.model.structure/model/structure.ecore#//Event">
     <eStructuralFeatures xsi:type="ecore:EReference" name="schedules" upperBound="-1"
         eType="#//GSchedules" containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="writeAttributes" upperBound="-1"
         eType="#//GWritesAttribute" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="definitions" upperBound="-1"
+        eType="#//Definition" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="DefinitionReference" eSuperTypes="platform:/resource/edu.kit.ipd.sdq.modsim.simspec.model.behavior/model/behavior.ecore#//Expression">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="definition" eType="#//Definition"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="IntLiteral" eSuperTypes="platform:/resource/edu.kit.ipd.sdq.modsim.simspec.model.expressions/model/expressions.ecore#//Constant"/>
   <eClassifiers xsi:type="ecore:EClass" name="DoubleLiteral" eSuperTypes="platform:/resource/edu.kit.ipd.sdq.modsim.simspec.model.expressions/model/expressions.ecore#//Constant"/>

@@ -3,6 +3,7 @@
   <viewpoint:DAnalysis uid="_pCCMMD08EeqmENm4HgMH-A" selectedViews="_pERn4D08EeqmENm4HgMH-A" version="14.1.0.201810161215">
     <semanticResources>datatypes.ecore</semanticResources>
     <semanticResources>datatypes.genmodel</semanticResources>
+    <semanticResources>../src/edu/kit/ipd/sdq/modsim/simspec/model/datatypes/TypeUtil.xtend</semanticResources>
     <ownedViews xmi:type="viewpoint:DView" uid="_pERn4D08EeqmENm4HgMH-A">
       <viewpoint xmi:type="description:Viewpoint" href="platform:/plugin/org.eclipse.emf.ecoretools.design/description/ecore.odesign#//@ownedViewpoints[name='Design']"/>
       <ownedRepresentationDescriptors xmi:type="viewpoint:DRepresentationDescriptor" uid="_pG9vgD08EeqmENm4HgMH-A" name="datatypes" repPath="#_pExXID08EeqmENm4HgMH-A">

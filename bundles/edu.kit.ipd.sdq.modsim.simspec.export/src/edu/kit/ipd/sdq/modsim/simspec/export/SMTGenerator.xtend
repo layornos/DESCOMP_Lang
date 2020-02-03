@@ -17,6 +17,8 @@ import edu.kit.ipd.sdq.modsim.simspec.model.structure.Simulator
 import java.util.List
 import org.eclipse.emf.ecore.util.EcoreUtil
 
+import static extension edu.kit.ipd.sdq.modsim.simspec.model.datatypes.TypeUtil.*
+
 class SMTGenerator {
 	//val Simulator context
 	
@@ -32,7 +34,7 @@ class SMTGenerator {
 		«FOR attr : attributes»
 		«attr.toVariableDeclaration»
 		«ENDFOR»
-		(assert (= delay «delayExpr.generateExpression»))
+		(assert (= delay «delayExpr.generateExpressionAndCast(createDoubleType)»))
 		'''
 	}
 	
@@ -44,7 +46,7 @@ class SMTGenerator {
 		«FOR attr : attributes»
 		«attr.toVariableDeclaration»
 		«ENDFOR»
-		(assert (= value «writeFunction.generateExpression»))
+		(assert (= value «writeFunction.generateExpressionAndCast(attribute.type)»))
 		'''
 	}
 	
@@ -59,21 +61,43 @@ class SMTGenerator {
 		'''
 	}
 	
-	//def dispatch generateExpression(Expression expr) {}
+	def String generateExpressionAndCast(Expression expr, DataType targetType) {
+		val generated = expr.generateExpression
+		
+		if (typesEqual(expr.type, targetType))
+			generated
+		// expression is int, needs to be double
+		else if (expr.type.isIntType && targetType.isDoubleType)
+			'''(to_real «generated»)'''
+		// other way around
+		else if (expr.type.isDoubleType && targetType.isIntType)
+			'''(to_int «generated»)'''
+	}
 	
 	def dispatch String generateExpression(Operation operation) {
-		//TODO: convert int/double (maybe)
-		'''(«operation.operator.generateOperator» «operation.left.generateExpression» «operation.right.generateExpression»)'''
+		val operator = operation.operator.generateOperator(operation.left.type, operation.right.type)
+		val left = operation.left.generateExpressionAndCast(operation.type)
+		val right = operation.right.generateExpressionAndCast(operation.type)
+		
+		'''(«operator» «left» «right»)'''
 	}
 	
 	def dispatch String generateExpression(Comparison comparison) {
-		//TODO: convert int/double (maybe)
-		'''(«comparison.comparator.generateComparator» «comparison.left.generateExpression» «comparison.right.generateExpression»)'''
+		val comparedType = combinedType(comparison.left.type, comparison.right.type)
+		
+		val comparator = comparison.comparator.generateComparator
+		val left = comparison.left.generateExpressionAndCast(comparedType)
+		val right = comparison.right.generateExpressionAndCast(comparedType)
+		
+		'''(«comparator» «left» «right»)'''
 	}
 	
 	def dispatch String generateExpression(IfThenElse ite) {
-		//TODO: convert int/double (maybe)
-		'''(ite «ite.condition.generateExpression» «ite.thenBranch.generateExpression» «ite.elseBranch.generateExpression»)'''
+		val condition = ite.condition.generateExpression
+		val thenBranch = ite.thenBranch.generateExpressionAndCast(ite.type)
+		val elseBranch = ite.elseBranch.generateExpressionAndCast(ite.type)
+		
+		'''(ite «condition» «thenBranch» «elseBranch»)'''
 	}
 	
 	def dispatch generateExpression(Constant constant) {
@@ -84,12 +108,12 @@ class SMTGenerator {
 		variable.attribute.name
 	}
 	
-	def generateOperator(Operator operator) {
+	def generateOperator(Operator operator, DataType leftType, DataType rightType) {
 		switch operator {
 			case Operator.PLUS: '+'
 			case Operator.MINUS: '-'
 			case Operator.MULT: '*'
-			case Operator.DIV: '/'
+			case Operator.DIV: if (leftType.isIntType && rightType.isIntType) 'div' else '/'
 			default: throw new IllegalArgumentException('Unknown operator: ' + operator)
 		}
 	}

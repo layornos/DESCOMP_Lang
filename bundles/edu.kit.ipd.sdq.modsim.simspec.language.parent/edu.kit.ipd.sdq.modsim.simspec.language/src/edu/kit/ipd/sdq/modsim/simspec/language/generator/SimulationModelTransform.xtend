@@ -3,7 +3,7 @@ package edu.kit.ipd.sdq.modsim.simspec.language.generator
 import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.GEvent
 import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.GSchedules
 import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.GWritesAttribute
-import edu.kit.ipd.sdq.modsim.simspec.language.typing.TypeUtil
+import edu.kit.ipd.sdq.modsim.simspec.model.datatypes.TypeUtil
 import edu.kit.ipd.sdq.modsim.simspec.model.behavior.BehaviorContainer
 import edu.kit.ipd.sdq.modsim.simspec.model.behavior.BehaviorFactory
 import edu.kit.ipd.sdq.modsim.simspec.model.behavior.Expression

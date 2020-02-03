@@ -20,7 +20,7 @@ Event returns structure::Event:
 	('event' {GEvent} name=ID '{'
 		('reads' readAttributes+=[structure::Attribute|QualifiedName] (',' readAttributes+=[structure::Attribute|QualifiedName])*)?
 		
-		(schedules+=GSchedules | writeAttributes+=GWritesAttribute)+
+		(schedules+=GSchedules | writeAttributes+=GWritesAttribute | definitions+=Definition)+
 	'}')
 ;
 	
@@ -49,6 +49,9 @@ GWritesAttribute:
 Delay: 'with' 'delay' '=' delay=Expression;
 Condition: 'when' condition=Expression;
 WriteFunction: attribute=[structure::Attribute|QualifiedName] '=' value=Expression;
+
+
+Definition: 'def' name=ID '=' expression=Expression;
 
 
 enum Comp returns expr::Comparator: EQUAL = '==' | LESS_THAN = '<' | LESS_THAN_EQUAL = '<=' | GREATER_THAN = '>' | GREATER_THAN_EQUAL = '>=';
@@ -82,7 +85,8 @@ Prefixed returns behavior::Expression:
 Atomic returns behavior::Expression:
 	'(' Expression ')' | 
 	Constant | 
-	{expr::Variable} attribute=[structure::Attribute];
+	{expr::Variable} attribute=[structure::Attribute] |
+	{DefinitionReference} '#' definition=[Definition];
 
 Constant returns expr::Constant: 
 	{IntLiteral} value=S_INT |

@@ -1,5 +1,7 @@
 import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.BoolLiteral
 import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.Condition
+import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.Definition
+import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.DefinitionReference
 import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.Delay
 import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.DoubleLiteral
 import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.IntLiteral
@@ -7,14 +9,15 @@ import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.WriteFuncti
 import edu.kit.ipd.sdq.modsim.simspec.language.validation.AbstractSpecificationLanguageValidator
 import edu.kit.ipd.sdq.modsim.simspec.model.behavior.Expression
 import edu.kit.ipd.sdq.modsim.simspec.model.datatypes.DataType
+import edu.kit.ipd.sdq.modsim.simspec.model.expressions.Comparator
+import edu.kit.ipd.sdq.modsim.simspec.model.expressions.Comparison
+import edu.kit.ipd.sdq.modsim.simspec.model.expressions.IfThenElse
 import edu.kit.ipd.sdq.modsim.simspec.model.expressions.Operation
 import edu.kit.ipd.sdq.modsim.simspec.model.expressions.Variable
-
-import static extension edu.kit.ipd.sdq.modsim.simspec.language.typing.TypeUtil.*
-import edu.kit.ipd.sdq.modsim.simspec.model.expressions.Comparison
-import edu.kit.ipd.sdq.modsim.simspec.model.expressions.Comparator
-import edu.kit.ipd.sdq.modsim.simspec.model.expressions.IfThenElse
 import org.eclipse.emf.ecore.util.EcoreUtil
+
+import static extension edu.kit.ipd.sdq.modsim.simspec.language.typing.DefinitionUtil.*
+import static extension edu.kit.ipd.sdq.modsim.simspec.model.datatypes.TypeUtil.*
 
 system edu.kit.ipd.sdq.modsim.simspec.language.typing.ExpressionTyping
 
@@ -41,6 +44,22 @@ axiom BoolLiteral
 	
 axiom Variable
 	G |- Variable variable : EcoreUtil.copy(variable.attribute.type) 
+
+
+rule DefReference
+	G |- DefinitionReference ref : DataType type
+from {
+//	val children = ref.definition.expression.eContents.filter(Expression).toList
+//	if (EcoreUtil.getAllContents(children).filter(DefinitionReference).exists[it.definition === ref.definition])
+//		println(ref.definition.name + ' contains cycles!')
+//	else
+//		println(ref.definition.name + ' contains no cycles!')
+//	fail error 'always fail'
+	!ref.definition.containsCycles
+	
+	G |- ref.definition.expression : var DataType exprType
+	type = EcoreUtil.copy(exprType)
+}
 
 
 rule Operation
@@ -118,7 +137,14 @@ from {
 
 
 
-
+checkrule Definition for
+	Definition def
+from {
+	!def.containsCycles
+	or {
+		fail error 'Definition contains cycles!'
+	}
+}
 
 
 

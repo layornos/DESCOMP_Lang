@@ -52,7 +52,7 @@ class DescompExport {
 		
 		//val conflicting = session.loadAll(DataSimulator, new Filter('name', ComparisonOperator.EQUALS, simExport.name), 4)
 		//session.delete(conflicting)
-		//session.purgeDatabase
+		session.purgeDatabase
 		
 		session.save(simExport)
 		session.save(schedules)
@@ -68,8 +68,8 @@ class DescompExport {
 			startEvent = schedules.startEvent.export
 			endEvent = schedules.endEvent.export
 		
-			delay = generator.generateDelay(schedules.delay)
-			condition = generator.generateCondition(schedules.condition)
+			delay = generator.generateDelay(schedules.delay).replaceAll('\n', '')
+			condition = generator.generateCondition(schedules.condition).replaceAll('\n', '')
 		]
 	}
 	
@@ -78,8 +78,8 @@ class DescompExport {
 			startEvent = writes.event.export
 			attribute = writes.attribute.export
 			
-			writeFunction = generator.generateWritesAttribute(writes.attribute, writes.writeFunction)
-			condition = generator.generateCondition(writes.condition)
+			writeFunction = generator.generateWritesAttribute(writes.attribute, writes.writeFunction).replaceAll('\n', '')
+			condition = generator.generateCondition(writes.condition).replaceAll('\n', '')
 		]
 	}
 	

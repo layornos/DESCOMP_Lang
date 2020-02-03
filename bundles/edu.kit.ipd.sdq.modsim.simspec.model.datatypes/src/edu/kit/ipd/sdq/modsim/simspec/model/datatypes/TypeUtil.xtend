@@ -1,4 +1,4 @@
-package edu.kit.ipd.sdq.modsim.simspec.language.typing
+package edu.kit.ipd.sdq.modsim.simspec.model.datatypes
 
 import edu.kit.ipd.sdq.modsim.simspec.model.datatypes.BaseDataType
 import edu.kit.ipd.sdq.modsim.simspec.model.datatypes.DataType
@@ -47,9 +47,13 @@ class TypeUtil {
 		return false
 	}
 	
-	def static compatible(DataType type1, DataType type2) {
+	def static typesEqual(DataType type1, DataType type2) {
 		val helper = new EcoreUtil.EqualityHelper()
-		helper.equals(type1, type2) || (type1.isNumberType && type2.isNumberType)
+		helper.equals(type1, type2)
+	}
+	
+	def static compatible(DataType type1, DataType type2) {
+		typesEqual(type1, type2) || (type1.isNumberType && type2.isNumberType)
 	}
 	
 	def static combinedType(DataType type1, DataType type2) {
