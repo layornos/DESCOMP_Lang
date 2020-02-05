@@ -13,20 +13,27 @@ import edu.kit.ipd.sdq.modsim.simspec.model.expressions.Operation
 import edu.kit.ipd.sdq.modsim.simspec.model.expressions.Operator
 import edu.kit.ipd.sdq.modsim.simspec.model.expressions.Variable
 import edu.kit.ipd.sdq.modsim.simspec.model.structure.Attribute
-import edu.kit.ipd.sdq.modsim.simspec.model.structure.Simulator
-import java.util.List
+import java.util.Set
 import org.eclipse.emf.ecore.util.EcoreUtil
 
 import static extension edu.kit.ipd.sdq.modsim.simspec.model.datatypes.TypeUtil.*
 
 class SMTGenerator {
-	//val Simulator context
 	
-	new(Simulator context) {
-		//this.context = context
+	new() {
+		
 	}
 	
+	/**
+	 * Generates the complete SMT code for a delay. Delays are always of sort 'Real'.
+	 * 
+	 * @param delayExpr The expression that defines the value of the delay. Must be a number.
+	 * @return A set of SMT commands that specify the delay.
+	 */
 	def String generateDelay(Expression delayExpr) {
+		if (!delayExpr.type.isNumberType)
+			throw new IllegalArgumentException('Delay must be a number, but has type: ' + delayExpr.type)
+		
 		val attributes = delayExpr.findReferencedAttributes
 		
 		'''
@@ -38,11 +45,21 @@ class SMTGenerator {
 		'''
 	}
 	
+	/**
+	 * Generates the complete SMT code for a write function.
+	 * 
+	 * @param attribute The attribute that is overwritten by the write function. Its name and type are used to create an SMT variable. 
+	 * @param writeFunction The expression that defines the value to write. Must have a type compatible with the type of attribute.
+	 * @return A set of SMT commands that specify the write function.
+	 */
 	def String generateWritesAttribute(Attribute attribute, Expression writeFunction) {
+		if (!writeFunction.type.compatible(attribute.type))
+			throw new IllegalArgumentException('Incompatible types: ' + writeFunction.type + ' and ' + attribute.type)
+			
 		val attributes = writeFunction.findReferencedAttributes
 		
 		'''
-		(declare-fun value () «attribute.type.toSMTType»)
+		(declare-fun value () «attribute.type.toSMTSort»)
 		«FOR attr : attributes»
 		«attr.toVariableDeclaration»
 		«ENDFOR»
@@ -50,7 +67,16 @@ class SMTGenerator {
 		'''
 	}
 	
+	/**
+	 * Generates the complete SMT code for a condition. Conditions are always of sort 'Bool'.
+	 * 
+	 * @param condition The expression that defines the condition.
+	 * @return A set of SMT commands that specify the condition.
+	 */
 	def String generateCondition(Expression condition) {
+		if (!condition.type.isBoolType)
+			throw new IllegalArgumentException('Condition must be a bool, but has type: ' + condition.type)
+		
 		val attributes = condition.findReferencedAttributes
 		
 		'''
@@ -73,6 +99,7 @@ class SMTGenerator {
 		else if (expr.type.isDoubleType && targetType.isIntType)
 			'''(to_int «generated»)'''
 	}
+	
 	
 	def dispatch String generateExpression(Operation operation) {
 		val operator = operation.operator.generateOperator(operation.left.type, operation.right.type)
@@ -113,6 +140,7 @@ class SMTGenerator {
 			case Operator.PLUS: '+'
 			case Operator.MINUS: '-'
 			case Operator.MULT: '*'
+			// special treatment for division, '/' is only defined for Reals
 			case Operator.DIV: if (leftType.isIntType && rightType.isIntType) 'div' else '/'
 			default: throw new IllegalArgumentException('Unknown operator: ' + operator)
 		}
@@ -130,29 +158,39 @@ class SMTGenerator {
 	}
 	
 	def findReferencedAttributes(Expression expr) {
-		val List<Attribute> references = newArrayList
+		val Set<Attribute> references = newHashSet
 		val contents = EcoreUtil.getAllContents(#[expr])
 		
-		contents.filter(Variable).forEach[
-			if (!references.exists[a | a.id == attribute.id])
-				references.add(attribute)
-		]
+		contents.filter(Variable).forEach[references.add(attribute)]
 		
 		return references
 	}
 	
 	def toVariableDeclaration(Attribute attribute) '''
-		(declare-fun «attribute.name» () «attribute.type.toSMTType»)'''
+		(declare-fun «attribute.name» () «attribute.type.toSMTSort»)
+	'''
 	
-	def String toSMTType(DataType type) {
+	/**
+	 * Returns the string representation of the SMT sort to a given {@link DataType}.
+	 * 
+	 * @param type The data type.
+	 * @return The corresponding SMT sort. 
+	 */
+	def String toSMTSort(DataType type) {
 		switch type {
-			BaseDataType : type.primitiveSMTType
-			ArrayDataType : '''(Array Int «type.contentType.toSMTType»)'''
+			BaseDataType : type.toPrimitiveSMTSort
+			ArrayDataType : '''(Array Int «type.contentType.toSMTSort»)'''
 			default: throw new IllegalArgumentException('Unknown type: ' + type)
 		}
 	}
 	
-	def primitiveSMTType(BaseDataType type) {
+	/**
+	 * Returns the string representation of the SMT sort to a given {@link BaseDataType}.
+	 * 
+	 * @param type The primitive type.
+	 * @return The corresponding SMT sort. 
+	 */
+	def toPrimitiveSMTSort(BaseDataType type) {
 		switch type.primitiveType {
 			case PrimitiveType.INT: 'Int'
 			case PrimitiveType.DOUBLE: 'Real'

@@ -33,7 +33,7 @@ class DescompExport {
 		
 		
 		
-		val generator = new SMTGenerator(sim)
+		val generator = new SMTGenerator()
 		
 		val simExport = sim.export
 		val schedules = behavior.schedules.map[exportSchedules(generator)]
@@ -85,6 +85,7 @@ class DescompExport {
 	
 	def create result: new DescompSimulator export(Simulator sim) {
 		result.name = sim.name
+		result.description = sim.description
 		result.entities = sim.entities.map[export].toSet
 		result.events = sim.events.map[export].toSet
 	}
