@@ -16,6 +16,10 @@
       <genEnumLiterals ecoreEnumLiteral="expressions.ecore#//Operator/MULT"/>
       <genEnumLiterals ecoreEnumLiteral="expressions.ecore#//Operator/DIV"/>
     </genEnums>
+    <genEnums typeSafeEnumCompatible="false" ecoreEnum="expressions.ecore#//UnaryOperator">
+      <genEnumLiterals ecoreEnumLiteral="expressions.ecore#//UnaryOperator/MINUS"/>
+      <genEnumLiterals ecoreEnumLiteral="expressions.ecore#//UnaryOperator/NEGATION"/>
+    </genEnums>
     <genEnums typeSafeEnumCompatible="false" ecoreEnum="expressions.ecore#//Comparator">
       <genEnumLiterals ecoreEnumLiteral="expressions.ecore#//Comparator/EQUAL"/>
       <genEnumLiterals ecoreEnumLiteral="expressions.ecore#//Comparator/LESS_THAN"/>
@@ -33,6 +37,10 @@
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference expressions.ecore#//BinaryOperation/left"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute expressions.ecore#//BinaryOperation/operator"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference expressions.ecore#//BinaryOperation/right"/>
+    </genClasses>
+    <genClasses ecoreClass="expressions.ecore#//UnaryOperation">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference expressions.ecore#//UnaryOperation/operand"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute expressions.ecore#//UnaryOperation/operator"/>
     </genClasses>
     <genClasses ecoreClass="expressions.ecore#//Comparison">
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference expressions.ecore#//Comparison/left"/>

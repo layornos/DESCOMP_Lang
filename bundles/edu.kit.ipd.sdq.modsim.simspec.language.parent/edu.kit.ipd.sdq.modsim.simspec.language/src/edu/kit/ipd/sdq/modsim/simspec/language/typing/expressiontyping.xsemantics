@@ -21,6 +21,8 @@ import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.EnumLiteral
 import edu.kit.ipd.sdq.modsim.simspec.arrayoperations.ArrayRead
 import edu.kit.ipd.sdq.modsim.simspec.model.datatypes.ArrayDataType
 import edu.kit.ipd.sdq.modsim.simspec.model.expressions.BinaryOperation
+import edu.kit.ipd.sdq.modsim.simspec.model.expressions.UnaryOperation
+import edu.kit.ipd.sdq.modsim.simspec.model.expressions.UnaryOperator
 
 system edu.kit.ipd.sdq.modsim.simspec.language.typing.ExpressionTyping
 
@@ -70,6 +72,20 @@ from {
 	
 	leftType.isNumberType && rightType.isNumberType
 	type = combinedType(leftType, rightType)
+}
+
+rule UnaryOperation
+	G |- UnaryOperation op : DataType type
+from {
+	G |- op.operand : var DataType operandType
+	
+	{
+		op.operator == UnaryOperator.MINUS && operandType.isNumberType
+		type = EcoreUtil.copy(operandType)
+	} or {
+		op.operator == UnaryOperator.NEGATION && operandType.isBoolType
+		type = createBoolType
+	}
 }
 
 rule Comparison

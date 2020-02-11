@@ -68,7 +68,7 @@ Definition: 'def' name=ID '=' expression=Expression;
 enum Comp returns expr::Comparator: EQUAL = '==' | LESS_THAN = '<' | LESS_THAN_EQUAL = '<=' | GREATER_THAN = '>' | GREATER_THAN_EQUAL = '>=';
 enum OpPlusMinus returns expr::Operator: PLUS = '+' | MINUS = '-';
 enum OpMultDiv returns expr::Operator: MULT = '*' | DIV = '/'; 
-//enum OpUnary returns expr::UnaryOperator: MINUS = '-' | NEGATION = '!';
+enum OpUnary returns expr::UnaryOperator: MINUS = '-' | NEGATION = '!';
 
 Expression returns behavior::Expression: 
 	Comparison | IfThenElse;
@@ -90,6 +90,7 @@ Multiplication returns behavior::Expression:
 Prefixed returns behavior::Expression:
 	//{BooleanNegation} =>"!" expression=Atomic | /* right associativity */
 	//{ArithmeticSigned} =>"-" expression=Atomic | /* right associativity */
+	{expr::UnaryOperation} => operator=OpUnary operand=Suffixed |
 	//Atomic
 	Suffixed
 ;

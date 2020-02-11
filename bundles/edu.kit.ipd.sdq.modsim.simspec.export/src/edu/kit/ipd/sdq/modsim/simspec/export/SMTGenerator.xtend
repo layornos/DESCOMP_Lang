@@ -20,6 +20,8 @@ import edu.kit.ipd.sdq.modsim.simspec.arrayoperations.ArrayRead
 import edu.kit.ipd.sdq.modsim.simspec.model.datatypes.EnumDeclaration
 import edu.kit.ipd.sdq.modsim.simspec.model.datatypes.EnumType
 import edu.kit.ipd.sdq.modsim.simspec.model.expressions.BinaryOperation
+import edu.kit.ipd.sdq.modsim.simspec.model.expressions.UnaryOperator
+import edu.kit.ipd.sdq.modsim.simspec.model.expressions.UnaryOperation
 
 class SMTGenerator {
 	
@@ -120,6 +122,13 @@ class SMTGenerator {
 		'''(«operator» «left» «right»)'''
 	}
 	
+	def dispatch String generateExpression(UnaryOperation operation) {
+		val operator = operation.operator.generateUnaryOperator
+		val operand = operation.operand.generateExpression
+		
+		'''(«operator» «operand»)'''
+	}
+	
 	def dispatch String generateExpression(Comparison comparison) {
 		val comparedType = combinedType(comparison.left.type, comparison.right.type)
 		
@@ -161,6 +170,14 @@ class SMTGenerator {
 			// special treatment for division, '/' is only defined for Reals
 			case Operator.DIV: if (leftType.isIntType && rightType.isIntType) 'div' else '/'
 			default: throw new IllegalArgumentException('Unknown operator: ' + operator)
+		}
+	}
+	
+	def generateUnaryOperator(UnaryOperator operator) {
+		switch (operator) {
+			case UnaryOperator.MINUS: '-'
+			case UnaryOperator.NEGATION: 'not'
+			default: throw new IllegalArgumentException('Unknown unary operator: ' + operator)
 		}
 	}
 	
