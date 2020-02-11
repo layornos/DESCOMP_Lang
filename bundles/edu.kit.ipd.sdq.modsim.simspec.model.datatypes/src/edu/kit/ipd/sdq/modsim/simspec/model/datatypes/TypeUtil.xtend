@@ -25,6 +25,12 @@ class TypeUtil {
 		]
 	}
 	
+	def static createEnumType(EnumDeclaration dec) {
+		DatatypesFactory.eINSTANCE.createEnumType => [
+			declaration = dec
+		]
+	}
+	
 	def static isNumberType(DataType type) {
 		type.isIntType || type.isDoubleType
 	}
@@ -45,6 +51,10 @@ class TypeUtil {
 		if (type instanceof BaseDataType)
 			return type.primitiveType == PrimitiveType.DOUBLE
 		return false
+	}
+	
+	def static isArrayType(DataType type) {
+		type instanceof ArrayDataType
 	}
 	
 	def static typesEqual(DataType type1, DataType type2) {

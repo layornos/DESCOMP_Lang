@@ -12,6 +12,7 @@ Export-Package: edu.kit.ipd.sdq.modsim.simspec.model.datatypes,
  edu.kit.ipd.sdq.modsim.simspec.model.datatypes.impl,
  edu.kit.ipd.sdq.modsim.simspec.model.datatypes.util
 Require-Bundle: org.eclipse.emf.ecore;visibility:=reexport,
+ edu.kit.ipd.sdq.modsim.simspec.model.general;visibility:=reexport,
  org.eclipse.core.runtime,
  com.google.guava,
  org.eclipse.xtext.xbase.lib,

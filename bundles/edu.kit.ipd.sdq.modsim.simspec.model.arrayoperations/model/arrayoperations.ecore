@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="arrayoperations" nsURI="http://www.example.org/arrayoperations"
+    nsPrefix="arrayoperations">
+  <eClassifiers xsi:type="ecore:EClass" name="ArrayOperation" abstract="true" eSuperTypes="../../edu.kit.ipd.sdq.modsim.simspec.model.behavior/model/behavior.ecore#//Expression">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="array" eType="ecore:EClass ../../edu.kit.ipd.sdq.modsim.simspec.model.behavior/model/behavior.ecore#//Expression"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="index" eType="ecore:EClass ../../edu.kit.ipd.sdq.modsim.simspec.model.behavior/model/behavior.ecore#//Expression"
+        containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ArrayRead" eSuperTypes="#//ArrayOperation"/>
+</ecore:EPackage>

@@ -3,16 +3,26 @@
  */
 package edu.kit.ipd.sdq.modsim.simspec.language.validation
 
-import edu.kit.ipd.sdq.modsim.simspec.model.behavior.Expression
 import org.eclipse.xtext.validation.Check
+import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.EnumLiteral
+import edu.kit.ipd.sdq.modsim.simspec.model.expressions.ExpressionsPackage
 
 /**
  * This class contains custom validation rules. 
- *
+ * 
  * See https://www.eclipse.org/Xtext/documentation/303_runtime_concepts.html#validation
  */
 class SpecificationLanguageValidator extends AbstractSpecificationLanguageValidator {
-	
+
+	@Check
+	def checkEnumContainsLiteral(EnumLiteral enumLiteral) {
+		val declaration = enumLiteral.declaration
+		if (!declaration.literals.contains(enumLiteral.value)) {
+			error('Enum ' + declaration.name + ' does not contain literal ' + enumLiteral.value,
+				ExpressionsPackage.Literals.CONSTANT__VALUE)
+		}
+	}
+
 //	public static val INVALID_NAME = 'invalidName'
 //
 //	@Check
@@ -23,7 +33,6 @@ class SpecificationLanguageValidator extends AbstractSpecificationLanguageValida
 //					INVALID_NAME)
 //		}
 //	}
-
 //	@Check
 //	def checkExpressionTest(Expression expr) {
 //		

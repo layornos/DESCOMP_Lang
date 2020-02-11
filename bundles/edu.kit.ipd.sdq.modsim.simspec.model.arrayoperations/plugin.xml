@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.0"?>
+
+<!--
+-->
+
+<plugin>
+
+   <extension point="org.eclipse.emf.ecore.generated_package">
+      <!-- @generated arrayoperations -->
+      <package
+            uri="http://www.example.org/arrayoperations"
+            class="edu.kit.ipd.sdq.modsim.simspec.arrayoperations.ArrayoperationsPackage"
+            genModel="model/arrayoperations.genmodel"/>
+   </extension>
+
+</plugin>

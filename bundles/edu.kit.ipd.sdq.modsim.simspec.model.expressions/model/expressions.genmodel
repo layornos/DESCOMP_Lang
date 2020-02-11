@@ -29,10 +29,10 @@
     <genClasses ecoreClass="expressions.ecore#//Constant">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute expressions.ecore#//Constant/value"/>
     </genClasses>
-    <genClasses ecoreClass="expressions.ecore#//Operation">
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference expressions.ecore#//Operation/left"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute expressions.ecore#//Operation/operator"/>
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference expressions.ecore#//Operation/right"/>
+    <genClasses ecoreClass="expressions.ecore#//BinaryOperation">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference expressions.ecore#//BinaryOperation/left"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute expressions.ecore#//BinaryOperation/operator"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference expressions.ecore#//BinaryOperation/right"/>
     </genClasses>
     <genClasses ecoreClass="expressions.ecore#//Comparison">
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference expressions.ecore#//Comparison/left"/>

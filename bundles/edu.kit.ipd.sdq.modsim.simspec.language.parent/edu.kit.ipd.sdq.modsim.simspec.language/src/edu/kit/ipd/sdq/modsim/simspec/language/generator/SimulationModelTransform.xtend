@@ -3,14 +3,15 @@ package edu.kit.ipd.sdq.modsim.simspec.language.generator
 import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.GEvent
 import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.GSchedules
 import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.GWritesAttribute
-import edu.kit.ipd.sdq.modsim.simspec.model.datatypes.TypeUtil
+import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.SimulatorSpecification
 import edu.kit.ipd.sdq.modsim.simspec.model.behavior.BehaviorContainer
 import edu.kit.ipd.sdq.modsim.simspec.model.behavior.BehaviorFactory
 import edu.kit.ipd.sdq.modsim.simspec.model.behavior.Expression
+import edu.kit.ipd.sdq.modsim.simspec.model.datatypes.DatatypesFactory
+import edu.kit.ipd.sdq.modsim.simspec.model.datatypes.TypeUtil
 import edu.kit.ipd.sdq.modsim.simspec.model.expressions.ExpressionsFactory
 import edu.kit.ipd.sdq.modsim.simspec.model.general.NamedIdentifier
 import edu.kit.ipd.sdq.modsim.simspec.model.structure.Event
-import edu.kit.ipd.sdq.modsim.simspec.model.structure.Simulator
 import edu.kit.ipd.sdq.modsim.simspec.model.structure.StructureFactory
 import java.util.List
 import org.eclipse.emf.ecore.EObject
@@ -26,16 +27,24 @@ class SimulationModelTransform {
 	}
 
 	def List<EObject> transform() {
-		// Init resources: simulator and behavior container
-		val sim = source.allContents.filter(Simulator).head as Simulator;
+		val specification = source.allContents.filter(SimulatorSpecification).head as SimulatorSpecification
+		
+		// Init model root objects
+		val sim = StructureFactory.eINSTANCE.createSimulator
 		behavior = BehaviorFactory.eINSTANCE.createBehaviorContainer
+		val enums = DatatypesFactory.eINSTANCE.createEnumDeclarationContainer
+		
+		sim.name = specification.name
+		sim.description = specification.description
+		// Entites and enum declarations need no change in their structure, so they are just added to their new containers.
+		// (that also keeps the references) 
+		sim.entities.addAll(specification.entities)
+		enums.declarations.addAll(specification.enums)
 
-		val events = sim.events.map[transformEvent].clone
-
-		sim.events.clear
+		val events = specification.events.map[transformEvent].clone
 		sim.events.addAll(events)
 
-		#[sim, behavior]
+		#[sim, behavior, enums]
 	}
 
 	private def create result: StructureFactory.eINSTANCE.createEvent transformEvent(Event e) {
@@ -43,12 +52,12 @@ class SimulationModelTransform {
 		result.readAttributes.addAll(e.readAttributes.clone)
 
 		if (e instanceof GEvent) {
-			e.schedules.forEach[s | transformSchedules(result, s)]
-			e.writeAttributes.forEach[w | transformWrites(result, w)]
+			e.schedules.forEach[transformSchedules(result)]
+			e.writeAttributes.forEach[transformWrites(result)]
 		}
 	}
 
-	private def transformSchedules(Event event, GSchedules schedules) {
+	private def transformSchedules(GSchedules schedules, Event event) {
 		val sched = BehaviorFactory.eINSTANCE.createSchedules => [
 			startEvent = event
 			endEvent = transformEvent(schedules.endEvent)
@@ -60,7 +69,7 @@ class SimulationModelTransform {
 		behavior.schedules.add(sched)
 	}
 
-	private def transformWrites(Event e, GWritesAttribute writes) {
+	private def transformWrites(GWritesAttribute writes, Event e) {
 		val write = BehaviorFactory.eINSTANCE.createWritesAttribute => [
 			event = e
 			attribute = writes.writeFunction.attribute
@@ -73,6 +82,8 @@ class SimulationModelTransform {
 	}
 
 	private def copyExpression(Expression expr) {
+		// Since expressions don't contain cycles, it's easier to copy them with a custom EcoreUtil.Copier than
+		// to add create-methods for each Expression subclass. 
 		val copier = new ExpressionCopier();
     	val result = copier.copy(expr);
     	copier.copyReferences();

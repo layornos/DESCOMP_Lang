@@ -9,7 +9,6 @@ import edu.kit.ipd.sdq.modsim.simspec.model.expressions.Comparator
 import edu.kit.ipd.sdq.modsim.simspec.model.expressions.Comparison
 import edu.kit.ipd.sdq.modsim.simspec.model.expressions.Constant
 import edu.kit.ipd.sdq.modsim.simspec.model.expressions.IfThenElse
-import edu.kit.ipd.sdq.modsim.simspec.model.expressions.Operation
 import edu.kit.ipd.sdq.modsim.simspec.model.expressions.Operator
 import edu.kit.ipd.sdq.modsim.simspec.model.expressions.Variable
 import edu.kit.ipd.sdq.modsim.simspec.model.structure.Attribute
@@ -17,6 +16,10 @@ import java.util.Set
 import org.eclipse.emf.ecore.util.EcoreUtil
 
 import static extension edu.kit.ipd.sdq.modsim.simspec.model.datatypes.TypeUtil.*
+import edu.kit.ipd.sdq.modsim.simspec.arrayoperations.ArrayRead
+import edu.kit.ipd.sdq.modsim.simspec.model.datatypes.EnumDeclaration
+import edu.kit.ipd.sdq.modsim.simspec.model.datatypes.EnumType
+import edu.kit.ipd.sdq.modsim.simspec.model.expressions.BinaryOperation
 
 class SMTGenerator {
 	
@@ -34,13 +37,9 @@ class SMTGenerator {
 		if (!delayExpr.type.isNumberType)
 			throw new IllegalArgumentException('Delay must be a number, but has type: ' + delayExpr.type)
 		
-		val attributes = delayExpr.findReferencedAttributes
-		
 		'''
 		(declare-fun delay () Real)
-		«FOR attr : attributes»
-		«attr.toVariableDeclaration»
-		«ENDFOR»
+		«delayExpr.listReferences»
 		(assert (= delay «delayExpr.generateExpressionAndCast(createDoubleType)»))
 		'''
 	}
@@ -55,14 +54,10 @@ class SMTGenerator {
 	def String generateWritesAttribute(Attribute attribute, Expression writeFunction) {
 		if (!writeFunction.type.compatible(attribute.type))
 			throw new IllegalArgumentException('Incompatible types: ' + writeFunction.type + ' and ' + attribute.type)
-			
-		val attributes = writeFunction.findReferencedAttributes
 		
 		'''
 		(declare-fun value () «attribute.type.toSMTSort»)
-		«FOR attr : attributes»
-		«attr.toVariableDeclaration»
-		«ENDFOR»
+		«writeFunction.listReferences»
 		(assert (= value «writeFunction.generateExpressionAndCast(attribute.type)»))
 		'''
 	}
@@ -77,13 +72,29 @@ class SMTGenerator {
 		if (!condition.type.isBoolType)
 			throw new IllegalArgumentException('Condition must be a bool, but has type: ' + condition.type)
 		
-		val attributes = condition.findReferencedAttributes
+		'''
+		«condition.listReferences»
+		(assert «condition.generateExpression»)
+		'''
+	}
+	
+	/**
+	 * Generates SMT declarations for all attributes and enum types referenced by a given expression.
+	 * 
+	 * @param expr The expression for which to find references.
+	 * @return A concatenation of SMT expressions that declare types and variables for the referenced enums and attributes.
+	 */
+	def String listReferences(Expression expr) {
+		val attributes = expr.findReferencedAttributes
+		val enums = expr.findReferencedEnums
 		
 		'''
+		«FOR e : enums»
+		«e.toTypeDeclaration»
+		«ENDFOR»
 		«FOR attr : attributes»
 		«attr.toVariableDeclaration»
 		«ENDFOR»
-		(assert «condition.generateExpression»)
 		'''
 	}
 	
@@ -101,7 +112,7 @@ class SMTGenerator {
 	}
 	
 	
-	def dispatch String generateExpression(Operation operation) {
+	def dispatch String generateExpression(BinaryOperation operation) {
 		val operator = operation.operator.generateOperator(operation.left.type, operation.right.type)
 		val left = operation.left.generateExpressionAndCast(operation.type)
 		val right = operation.right.generateExpressionAndCast(operation.type)
@@ -125,6 +136,13 @@ class SMTGenerator {
 		val elseBranch = ite.elseBranch.generateExpressionAndCast(ite.type)
 		
 		'''(ite «condition» «thenBranch» «elseBranch»)'''
+	}
+	
+	def dispatch String generateExpression(ArrayRead read) {
+		val array = read.array.generateExpression
+		val index = read.index.generateExpression
+		
+		'''(select «array» «index»)'''
 	}
 	
 	def dispatch generateExpression(Constant constant) {
@@ -170,6 +188,19 @@ class SMTGenerator {
 		(declare-fun «attribute.name» () «attribute.type.toSMTSort»)
 	'''
 	
+	def findReferencedEnums(Expression expr) {
+		val Set<EnumDeclaration> references = newHashSet
+		val contents = EcoreUtil.getAllContents(#[expr])
+		
+		contents.filter(EnumType).forEach[references.add(declaration)]
+		
+		return references
+	}
+	
+	def toTypeDeclaration(EnumDeclaration declaration) '''
+		(declare-datatypes ((«declaration.name» 0)) ((«FOR lit : declaration.literals» («lit») «ENDFOR»)))
+	''' 
+	
 	/**
 	 * Returns the string representation of the SMT sort to a given {@link DataType}.
 	 * 
@@ -180,6 +211,7 @@ class SMTGenerator {
 		switch type {
 			BaseDataType : type.toPrimitiveSMTSort
 			ArrayDataType : '''(Array Int «type.contentType.toSMTSort»)'''
+			EnumType : type.declaration.name 
 			default: throw new IllegalArgumentException('Unknown type: ' + type)
 		}
 	}

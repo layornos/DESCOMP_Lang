@@ -35,6 +35,7 @@ Workflow {
 			referencedResource = "platform:/resource/edu.kit.ipd.sdq.modsim.simspec.model.structure/model/structure.genmodel"
 			referencedResource = "platform:/resource/edu.kit.ipd.sdq.modsim.simspec.model.behavior/model/behavior.genmodel"
 			referencedResource = "platform:/resource/edu.kit.ipd.sdq.modsim.simspec.model.expressions/model/expressions.genmodel"
+			referencedResource = "platform:/resource/edu.kit.ipd.sdq.modsim.simspec.model.arrayoperations/model/arrayoperations.genmodel"
 			
 			
 			fragment = ecore2xtext.Ecore2XtextValueConverterServiceFragment2 auto-inject {}

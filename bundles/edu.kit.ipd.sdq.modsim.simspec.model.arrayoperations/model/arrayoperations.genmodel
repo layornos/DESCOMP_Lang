@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<genmodel:GenModel xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore"
+    xmlns:genmodel="http://www.eclipse.org/emf/2002/GenModel" modelDirectory="/edu.kit.ipd.sdq.modsim.simspec.model.arrayoperations/src-gen"
+    editDirectory="/edu.kit.ipd.sdq.modsim.simspec.model.arrayoperations.edit/src-gen"
+    editorDirectory="/edu.kit.ipd.sdq.modsim.simspec.model.arrayoperations.editor/src-gen"
+    modelPluginID="edu.kit.ipd.sdq.modsim.simspec.model.arrayoperations" modelName="Arrayoperations"
+    rootExtendsClass="org.eclipse.emf.ecore.impl.MinimalEObjectImpl$Container" importerID="org.eclipse.emf.importer.ecore"
+    complianceLevel="8.0" copyrightFields="false" usedGenPackages="../../edu.kit.ipd.sdq.modsim.simspec.model.behavior/model/behavior.genmodel#//behavior ../../edu.kit.ipd.sdq.modsim.simspec.model.datatypes/model/datatypes.genmodel#//datatypes ../../edu.kit.ipd.sdq.modsim.simspec.model.general/model/general.genmodel#//general ../../edu.kit.ipd.sdq.modsim.simspec.model.structure/model/structure.genmodel#//structure"
+    operationReflection="true" importOrganizing="true">
+  <foreignModel>arrayoperations.ecore</foreignModel>
+  <genPackages prefix="Arrayoperations" basePackage="edu.kit.ipd.sdq.modsim.simspec"
+      disposableProviderFactory="true" ecorePackage="arrayoperations.ecore#/">
+    <genClasses image="false" ecoreClass="arrayoperations.ecore#//ArrayOperation">
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference arrayoperations.ecore#//ArrayOperation/array"/>
+      <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference arrayoperations.ecore#//ArrayOperation/index"/>
+    </genClasses>
+    <genClasses ecoreClass="arrayoperations.ecore#//ArrayRead"/>
+  </genPackages>
+</genmodel:GenModel>

@@ -4,13 +4,15 @@ import "http://www.example.org/structure" as structure
 import "http://www.example.org/datatypes" as datatypes
 import "http://www.example.org/behavior" as behavior
 import "http://www.example.org/expressions" as expr
+import "http://www.example.org/arrayoperations" as array
 import "http://www.eclipse.org/emf/2002/Ecore" as ecore
 
 generate specificationLanguage "http://www.kit.edu/ipd/sdq/modsim/simspec/language/SpecificationLanguage"
 
-Simulator returns structure::Simulator:
+//Simulator returns structure::Simulator:
+SimulatorSpecification:
 	(('name' '=' name=STRING) & ('description' '=' description=STRING)?)
-	(events+=Event | entities+=Entity)*;
+	(events+=Event | entities+=Entity | enums+=EnumDeclaration)*;
 	
 Event returns structure::Event:
 	'event' name=ID ('{'
@@ -23,6 +25,11 @@ Event returns structure::Event:
 		(schedules+=GSchedules | writeAttributes+=GWritesAttribute | definitions+=Definition)+
 	'}')
 ;
+
+EnumDeclaration returns datatypes::EnumDeclaration: 
+	'datatype' name=ID '{'
+		(literals+=ID) (',' literals+=ID)*
+	'}';
 	
 Entity returns structure::Entity:
 	'entity' name=ID ('{'
@@ -32,10 +39,14 @@ Entity returns structure::Entity:
 Attribute returns structure::Attribute:
 	name=ID ':' type=Type;
 	
-Type returns datatypes::BaseDataType: {datatypes::BaseDataType} primitiveType=PrimitiveType;
+Type returns datatypes::DataType: 
+	{datatypes::BaseDataType} primitiveType=PrimitiveType |
+	EnumType |
+	ArrayType;
 
 enum PrimitiveType returns datatypes::PrimitiveType: INT | DOUBLE | BOOL;
-
+EnumType returns datatypes::EnumType: declaration=[datatypes::EnumDeclaration];
+ArrayType returns datatypes::ArrayDataType: 'ARRAY' '[' contentType=Type ']';
 
 
 GSchedules: 
@@ -57,7 +68,7 @@ Definition: 'def' name=ID '=' expression=Expression;
 enum Comp returns expr::Comparator: EQUAL = '==' | LESS_THAN = '<' | LESS_THAN_EQUAL = '<=' | GREATER_THAN = '>' | GREATER_THAN_EQUAL = '>=';
 enum OpPlusMinus returns expr::Operator: PLUS = '+' | MINUS = '-';
 enum OpMultDiv returns expr::Operator: MULT = '*' | DIV = '/'; 
-
+//enum OpUnary returns expr::UnaryOperator: MINUS = '-' | NEGATION = '!';
 
 Expression returns behavior::Expression: 
 	Comparison | IfThenElse;
@@ -71,28 +82,33 @@ Comparison returns behavior::Expression:
 	Addition (({expr::Comparison.left=current} comparator=Comp) right=Addition)*;
 	
 Addition returns behavior::Expression:
-	Multiplication (({expr::Operation.left=current} operator=OpPlusMinus) right=Multiplication)*; 
+	Multiplication (({expr::BinaryOperation.left=current} operator=OpPlusMinus) right=Multiplication)*; 
 
 Multiplication returns behavior::Expression:
-	Prefixed (({expr::Operation.left=current} operator=OpMultDiv) right=Prefixed)*;
+	Prefixed (({expr::BinaryOperation.left=current} operator=OpMultDiv) right=Prefixed)*;
 
 Prefixed returns behavior::Expression:
 	//{BooleanNegation} =>"!" expression=Atomic | /* right associativity */
 	//{ArithmeticSigned} =>"-" expression=Atomic | /* right associativity */
-	Atomic
+	//Atomic
+	Suffixed
 ;
+
+Suffixed returns behavior::Expression:
+	Atomic (({array::ArrayRead.array=current}) '[' index=Expression ']')*;
 
 Atomic returns behavior::Expression:
 	'(' Expression ')' | 
 	Constant | 
 	{expr::Variable} attribute=[structure::Attribute] |
-	{DefinitionReference} '#' definition=[Definition];
+	{DefinitionReference} '$' definition=[Definition];
 
 Constant returns expr::Constant: 
 	{IntLiteral} value=S_INT |
 	{DoubleLiteral} value=DOUBLE |
-	{BoolLiteral} value=BOOL;
-
+	{BoolLiteral} value=BOOL |
+	{EnumLiteral} declaration=[datatypes::EnumDeclaration] '.' value=ID;
+	
 
 QualifiedName:
     ID ('.' ID)*;

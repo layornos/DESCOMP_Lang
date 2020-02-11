@@ -12,12 +12,15 @@ import edu.kit.ipd.sdq.modsim.simspec.model.datatypes.DataType
 import edu.kit.ipd.sdq.modsim.simspec.model.expressions.Comparator
 import edu.kit.ipd.sdq.modsim.simspec.model.expressions.Comparison
 import edu.kit.ipd.sdq.modsim.simspec.model.expressions.IfThenElse
-import edu.kit.ipd.sdq.modsim.simspec.model.expressions.Operation
 import edu.kit.ipd.sdq.modsim.simspec.model.expressions.Variable
 import org.eclipse.emf.ecore.util.EcoreUtil
 
 import static extension edu.kit.ipd.sdq.modsim.simspec.language.typing.DefinitionUtil.*
 import static extension edu.kit.ipd.sdq.modsim.simspec.model.datatypes.TypeUtil.*
+import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.EnumLiteral
+import edu.kit.ipd.sdq.modsim.simspec.arrayoperations.ArrayRead
+import edu.kit.ipd.sdq.modsim.simspec.model.datatypes.ArrayDataType
+import edu.kit.ipd.sdq.modsim.simspec.model.expressions.BinaryOperation
 
 system edu.kit.ipd.sdq.modsim.simspec.language.typing.ExpressionTyping
 
@@ -43,18 +46,15 @@ axiom BoolLiteral
 	G |- BoolLiteral literal : createBoolType
 	
 axiom Variable
-	G |- Variable variable : EcoreUtil.copy(variable.attribute.type) 
+	G |- Variable variable : EcoreUtil.copy(variable.attribute.type)
+	
+axiom EnumLiteral
+	G |- EnumLiteral literal : createEnumType(literal.declaration)
 
 
 rule DefReference
 	G |- DefinitionReference ref : DataType type
 from {
-//	val children = ref.definition.expression.eContents.filter(Expression).toList
-//	if (EcoreUtil.getAllContents(children).filter(DefinitionReference).exists[it.definition === ref.definition])
-//		println(ref.definition.name + ' contains cycles!')
-//	else
-//		println(ref.definition.name + ' contains no cycles!')
-//	fail error 'always fail'
 	!ref.definition.containsCycles
 	
 	G |- ref.definition.expression : var DataType exprType
@@ -63,7 +63,7 @@ from {
 
 
 rule Operation
-	G |- Operation op : DataType type
+	G |- BinaryOperation op : DataType type
 from {
 	G |- op.left : var DataType leftType
 	G |- op.right : var DataType rightType
@@ -96,6 +96,17 @@ from {
 	
 	conditionType.isBoolType && compatible(thenType, elseType)
 	type = combinedType(thenType, elseType)
+}
+
+rule ArrayRead
+	G |- ArrayRead read: DataType type
+from {
+	G |- read.array : var DataType arrayType
+	G |- read.index : var DataType indexType
+	
+	arrayType.isArrayType
+	indexType.isIntType
+	type = (arrayType as ArrayDataType).contentType
 }
 
 
