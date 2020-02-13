@@ -4,10 +4,15 @@
 package edu.kit.ipd.sdq.modsim.simspec.language.ui
 
 import org.eclipse.xtend.lib.annotations.FinalFieldsConstructor
+import org.eclipse.xtext.ui.editor.hover.IEObjectHoverProvider
 
 /**
  * Use this class to register components to be used within the Eclipse IDE.
  */
 @FinalFieldsConstructor
 class SpecificationLanguageUiModule extends AbstractSpecificationLanguageUiModule {
+	
+	def Class<? extends IEObjectHoverProvider> bindIEObjectHoverProvider() {
+		return SpecificationLanguageEObjectHoverProvider
+	}
 }

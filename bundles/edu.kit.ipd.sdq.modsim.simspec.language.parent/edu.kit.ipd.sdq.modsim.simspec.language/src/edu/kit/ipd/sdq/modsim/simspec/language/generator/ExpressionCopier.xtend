@@ -5,6 +5,8 @@ import org.eclipse.emf.ecore.EObject
 import edu.kit.ipd.sdq.modsim.simspec.model.expressions.ExpressionsFactory
 import edu.kit.ipd.sdq.modsim.simspec.model.expressions.Constant
 import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.DefinitionReference
+import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.TypeCast
+import edu.kit.ipd.sdq.modsim.simspec.model.expressions.UnaryOperator
 
 class ExpressionCopier extends EcoreUtil.Copier {
 	override copy(EObject object) {
@@ -14,6 +16,12 @@ class ExpressionCopier extends EcoreUtil.Copier {
 			return ExpressionsFactory.eINSTANCE.createConstant => [
 				value = object.value 
 				type = object.type
+			]
+		if (object instanceof TypeCast)
+			return ExpressionsFactory.eINSTANCE.createUnaryOperation => [
+				operator = UnaryOperator.TYPE_CAST
+				operand = object.expression
+				type = object.type // after typing, object.type is the same as object.targetType
 			]
 		// resolve definition references
 		if (object instanceof DefinitionReference)

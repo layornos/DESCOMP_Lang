@@ -15,5 +15,8 @@
       <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference arrayoperations.ecore#//ArrayOperation/index"/>
     </genClasses>
     <genClasses ecoreClass="arrayoperations.ecore#//ArrayRead"/>
+    <genClasses ecoreClass="arrayoperations.ecore#//ArrayWrite">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference arrayoperations.ecore#//ArrayWrite/value"/>
+    </genClasses>
   </genPackages>
 </genmodel:GenModel>

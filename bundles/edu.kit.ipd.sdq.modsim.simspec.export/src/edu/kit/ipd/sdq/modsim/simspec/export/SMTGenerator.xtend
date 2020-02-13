@@ -22,6 +22,7 @@ import edu.kit.ipd.sdq.modsim.simspec.model.datatypes.EnumType
 import edu.kit.ipd.sdq.modsim.simspec.model.expressions.BinaryOperation
 import edu.kit.ipd.sdq.modsim.simspec.model.expressions.UnaryOperator
 import edu.kit.ipd.sdq.modsim.simspec.model.expressions.UnaryOperation
+import edu.kit.ipd.sdq.modsim.simspec.arrayoperations.ArrayWrite
 
 class SMTGenerator {
 	
@@ -111,6 +112,8 @@ class SMTGenerator {
 		// other way around
 		else if (expr.type.isDoubleType && targetType.isIntType)
 			'''(to_int «generated»)'''
+		else
+			throw new IllegalArgumentException('Type ' + expr.type + ' can\'t be cast to ' + targetType)
 	}
 	
 	
@@ -123,10 +126,13 @@ class SMTGenerator {
 	}
 	
 	def dispatch String generateExpression(UnaryOperation operation) {
-		val operator = operation.operator.generateUnaryOperator
-		val operand = operation.operand.generateExpression
+		val operand = operation.operand.generateExpressionAndCast(operation.type)
 		
-		'''(«operator» «operand»)'''
+		// an SMT operator is only required for non-cast operations since the generated operand code already includes a cast
+		if (operation.operator == UnaryOperator.TYPE_CAST)
+			operand
+		else
+			'''(«operation.operator.generateUnaryOperator» «operand»)'''
 	}
 	
 	def dispatch String generateExpression(Comparison comparison) {
@@ -152,6 +158,16 @@ class SMTGenerator {
 		val index = read.index.generateExpression
 		
 		'''(select «array» «index»)'''
+	}
+	
+	def dispatch String generateExpression(ArrayWrite write) {
+		//TODO: change when array write has its own typing rule
+		val type = (write.array.type as ArrayDataType).contentType
+		val array = write.array.generateExpression
+		val index = write.index.generateExpression
+		val value = write.value.generateExpressionAndCast(type)
+		
+		'''(store «array» «index» «value»)'''
 	}
 	
 	def dispatch generateExpression(Constant constant) {

@@ -54,6 +54,17 @@
     <eStructuralFeatures xsi:type="ecore:EReference" name="definitions" upperBound="-1"
         eType="#//Definition" containment="true"/>
   </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="WriteToValue" eSuperTypes="#//WriteFunction"/>
+  <eClassifiers xsi:type="ecore:EClass" name="WriteToArray" eSuperTypes="#//WriteFunction">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="index" eType="ecore:EClass platform:/resource/edu.kit.ipd.sdq.modsim.simspec.model.behavior/model/behavior.ecore#//Expression"
+        containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="TypeCast" eSuperTypes="platform:/resource/edu.kit.ipd.sdq.modsim.simspec.model.behavior/model/behavior.ecore#//Expression">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="targetType" eType="ecore:EClass platform:/resource/edu.kit.ipd.sdq.modsim.simspec.model.datatypes/model/datatypes.ecore#//DataType"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="expression" eType="ecore:EClass platform:/resource/edu.kit.ipd.sdq.modsim.simspec.model.behavior/model/behavior.ecore#//Expression"
+        containment="true"/>
+  </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="DefinitionReference" eSuperTypes="platform:/resource/edu.kit.ipd.sdq.modsim.simspec.model.behavior/model/behavior.ecore#//Expression">
     <eStructuralFeatures xsi:type="ecore:EReference" name="definition" eType="#//Definition"/>
   </eClassifiers>

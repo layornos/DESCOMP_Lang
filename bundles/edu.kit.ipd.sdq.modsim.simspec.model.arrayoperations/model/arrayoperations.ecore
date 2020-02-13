@@ -9,4 +9,8 @@
         containment="true"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="ArrayRead" eSuperTypes="#//ArrayOperation"/>
+  <eClassifiers xsi:type="ecore:EClass" name="ArrayWrite" eSuperTypes="#//ArrayOperation">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="value" eType="ecore:EClass ../../edu.kit.ipd.sdq.modsim.simspec.model.behavior/model/behavior.ecore#//Expression"
+        containment="true"/>
+  </eClassifiers>
 </ecore:EPackage>

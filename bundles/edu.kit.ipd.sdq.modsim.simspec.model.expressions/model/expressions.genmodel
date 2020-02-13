@@ -19,6 +19,7 @@
     <genEnums typeSafeEnumCompatible="false" ecoreEnum="expressions.ecore#//UnaryOperator">
       <genEnumLiterals ecoreEnumLiteral="expressions.ecore#//UnaryOperator/MINUS"/>
       <genEnumLiterals ecoreEnumLiteral="expressions.ecore#//UnaryOperator/NEGATION"/>
+      <genEnumLiterals ecoreEnumLiteral="expressions.ecore#//UnaryOperator/TYPE_CAST"/>
     </genEnums>
     <genEnums typeSafeEnumCompatible="false" ecoreEnum="expressions.ecore#//Comparator">
       <genEnumLiterals ecoreEnumLiteral="expressions.ecore#//Comparator/EQUAL"/>

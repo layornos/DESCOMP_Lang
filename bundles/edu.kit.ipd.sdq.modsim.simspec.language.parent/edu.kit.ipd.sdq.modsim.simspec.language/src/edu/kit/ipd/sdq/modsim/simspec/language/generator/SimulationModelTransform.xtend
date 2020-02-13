@@ -16,6 +16,10 @@ import edu.kit.ipd.sdq.modsim.simspec.model.structure.StructureFactory
 import java.util.List
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.resource.Resource
+import edu.kit.ipd.sdq.modsim.simspec.arrayoperations.ArrayoperationsFactory
+import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.WriteToValue
+import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.WriteToArray
+import org.eclipse.emf.ecore.util.EcoreUtil
 
 class SimulationModelTransform {
 	val Resource source
@@ -74,7 +78,23 @@ class SimulationModelTransform {
 			event = e
 			attribute = writes.writeFunction.attribute
 			// TODO: validate expression types
-			writeFunction = copyExpression(writes.writeFunction.value)
+			//writeFunction = copyExpression(writes.writeFunction.value)
+			
+			val function = writes.writeFunction
+			writeFunction = switch (function) {
+				WriteToValue: copyExpression(function.value)
+				WriteToArray: ArrayoperationsFactory.eINSTANCE.createArrayWrite => [
+					type = EcoreUtil.copy(function.attribute.type)
+					array = ExpressionsFactory.eINSTANCE.createVariable => [
+						attribute = function.attribute
+						type = EcoreUtil.copy(function.attribute.type)
+					]
+					index = copyExpression(function.index)
+					value = copyExpression(function.value)
+				]
+			}
+			
+			
 			condition = copyExpression(writes.conditionSpec?.condition ?: createDefaultCondition)
 		]
 

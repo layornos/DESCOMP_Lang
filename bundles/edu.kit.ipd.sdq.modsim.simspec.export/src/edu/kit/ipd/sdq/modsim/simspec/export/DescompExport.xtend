@@ -16,6 +16,8 @@ import edu.kit.ipd.sdq.modsim.simspec.model.datatypes.DataType
 import edu.kit.ipd.sdq.modsim.simspec.model.datatypes.BaseDataType
 import edu.kit.ipd.sdq.modsim.simspec.model.behavior.Schedules
 import edu.kit.ipd.sdq.modsim.simspec.model.behavior.WritesAttribute
+import edu.kit.ipd.sdq.modsim.simspec.model.datatypes.EnumType
+import edu.kit.ipd.sdq.modsim.simspec.model.datatypes.ArrayDataType
 
 class DescompExport {
 	
@@ -105,9 +107,12 @@ class DescompExport {
 		result.readAttribute = event.readAttributes.map[export].toSet
 	}
 	
-	def typeName(DataType type) {
-		if (type instanceof BaseDataType)
-			return type.primitiveType.toString
-		return 'UNKNOWN TYPE'
+	def String typeName(DataType type) {
+		switch (type) {
+			BaseDataType: type.primitiveType.toString
+			EnumType: type.declaration.name
+			ArrayDataType: '''ARRAY[«type.contentType.typeName»]'''
+			default: 'UNKNOWN TYPE'
+		}
 	}
 }

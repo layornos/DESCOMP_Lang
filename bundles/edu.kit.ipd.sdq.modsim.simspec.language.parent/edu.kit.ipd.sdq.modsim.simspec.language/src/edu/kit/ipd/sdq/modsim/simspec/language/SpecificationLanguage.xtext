@@ -54,13 +54,14 @@ GSchedules:
 	(delaySpec=Delay? & (conditionSpec=Condition)?);
 	
 GWritesAttribute: 
-	'writes' writeFunction=WriteFunction 
+	'writes' writeFunction=(WriteToValue | WriteToArray)
 	(conditionSpec=Condition)?;
 	
 Delay: 'with' 'delay' '=' delay=Expression;
 Condition: 'when' condition=Expression;
-WriteFunction: attribute=[structure::Attribute|QualifiedName] '=' value=Expression;
 
+WriteToValue returns WriteFunction: {WriteToValue} attribute=[structure::Attribute|QualifiedName] '=' value=Expression;
+WriteToArray returns WriteFunction: {WriteToArray} attribute=[structure::Attribute|QualifiedName] '[' index=Expression ']' '=' value=Expression;
 
 Definition: 'def' name=ID '=' expression=Expression;
 
@@ -68,7 +69,7 @@ Definition: 'def' name=ID '=' expression=Expression;
 enum Comp returns expr::Comparator: EQUAL = '==' | LESS_THAN = '<' | LESS_THAN_EQUAL = '<=' | GREATER_THAN = '>' | GREATER_THAN_EQUAL = '>=';
 enum OpPlusMinus returns expr::Operator: PLUS = '+' | MINUS = '-';
 enum OpMultDiv returns expr::Operator: MULT = '*' | DIV = '/'; 
-enum OpUnary returns expr::UnaryOperator: MINUS = '-' | NEGATION = '!';
+enum OpUnary returns expr::UnaryOperator: MINUS = '-' | NEGATION = '!'; // type cast is covered by separate Prefixed rule
 
 Expression returns behavior::Expression: 
 	Comparison | IfThenElse;
@@ -88,10 +89,10 @@ Multiplication returns behavior::Expression:
 	Prefixed (({expr::BinaryOperation.left=current} operator=OpMultDiv) right=Prefixed)*;
 
 Prefixed returns behavior::Expression:
-	//{BooleanNegation} =>"!" expression=Atomic | /* right associativity */
-	//{ArithmeticSigned} =>"-" expression=Atomic | /* right associativity */
 	{expr::UnaryOperation} => operator=OpUnary operand=Suffixed |
-	//Atomic
+	// only int <-> double casts can be typed and used atm, but this allows for more complex casts in the future
+	// note that TypeCast is a new class and needs to be converted to UnaryOperation later (in generator.ExpressionCopier)
+	{TypeCast} => '(' targetType=Type ')' expression=Suffixed |
 	Suffixed
 ;
 
@@ -109,7 +110,6 @@ Constant returns expr::Constant:
 	{DoubleLiteral} value=DOUBLE |
 	{BoolLiteral} value=BOOL |
 	{EnumLiteral} declaration=[datatypes::EnumDeclaration] '.' value=ID;
-	
 
 QualifiedName:
     ID ('.' ID)*;
