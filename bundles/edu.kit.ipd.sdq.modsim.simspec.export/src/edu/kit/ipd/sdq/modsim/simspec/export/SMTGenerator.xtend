@@ -16,20 +16,15 @@ import java.util.Set
 import org.eclipse.emf.ecore.util.EcoreUtil
 
 import static extension edu.kit.ipd.sdq.modsim.simspec.model.datatypes.TypeUtil.*
-import edu.kit.ipd.sdq.modsim.simspec.arrayoperations.ArrayRead
+import edu.kit.ipd.sdq.modsim.simspec.model.arrayoperations.ArrayRead
 import edu.kit.ipd.sdq.modsim.simspec.model.datatypes.EnumDeclaration
 import edu.kit.ipd.sdq.modsim.simspec.model.datatypes.EnumType
 import edu.kit.ipd.sdq.modsim.simspec.model.expressions.BinaryOperation
 import edu.kit.ipd.sdq.modsim.simspec.model.expressions.UnaryOperator
 import edu.kit.ipd.sdq.modsim.simspec.model.expressions.UnaryOperation
-import edu.kit.ipd.sdq.modsim.simspec.arrayoperations.ArrayWrite
+import edu.kit.ipd.sdq.modsim.simspec.model.arrayoperations.ArrayWrite
 
 class SMTGenerator {
-	
-	new() {
-		
-	}
-	
 	/**
 	 * Generates the complete SMT code for a delay. Delays are always of sort 'Real'.
 	 * 
@@ -87,7 +82,7 @@ class SMTGenerator {
 	 * @param expr The expression for which to find references.
 	 * @return A concatenation of SMT expressions that declare types and variables for the referenced enums and attributes.
 	 */
-	def String listReferences(Expression expr) {
+	private def String listReferences(Expression expr) {
 		val attributes = expr.findReferencedAttributes
 		val enums = expr.findReferencedEnums
 		
@@ -101,7 +96,7 @@ class SMTGenerator {
 		'''
 	}
 	
-	def String generateExpressionAndCast(Expression expr, DataType targetType) {
+	private def String generateExpressionAndCast(Expression expr, DataType targetType) {
 		val generated = expr.generateExpression
 		
 		if (typesEqual(expr.type, targetType))
@@ -117,7 +112,7 @@ class SMTGenerator {
 	}
 	
 	
-	def dispatch String generateExpression(BinaryOperation operation) {
+	private def dispatch String generateExpression(BinaryOperation operation) {
 		val operator = operation.operator.generateOperator(operation.left.type, operation.right.type)
 		val left = operation.left.generateExpressionAndCast(operation.type)
 		val right = operation.right.generateExpressionAndCast(operation.type)
@@ -125,7 +120,7 @@ class SMTGenerator {
 		'''(«operator» «left» «right»)'''
 	}
 	
-	def dispatch String generateExpression(UnaryOperation operation) {
+	private def dispatch String generateExpression(UnaryOperation operation) {
 		val operand = operation.operand.generateExpressionAndCast(operation.type)
 		
 		// an SMT operator is only required for non-cast operations since the generated operand code already includes a cast
@@ -135,7 +130,7 @@ class SMTGenerator {
 			'''(«operation.operator.generateUnaryOperator» «operand»)'''
 	}
 	
-	def dispatch String generateExpression(Comparison comparison) {
+	private def dispatch String generateExpression(Comparison comparison) {
 		val comparedType = combinedType(comparison.left.type, comparison.right.type)
 		
 		val comparator = comparison.comparator.generateComparator
@@ -145,7 +140,7 @@ class SMTGenerator {
 		'''(«comparator» «left» «right»)'''
 	}
 	
-	def dispatch String generateExpression(IfThenElse ite) {
+	private def dispatch String generateExpression(IfThenElse ite) {
 		val condition = ite.condition.generateExpression
 		val thenBranch = ite.thenBranch.generateExpressionAndCast(ite.type)
 		val elseBranch = ite.elseBranch.generateExpressionAndCast(ite.type)
@@ -153,14 +148,14 @@ class SMTGenerator {
 		'''(ite «condition» «thenBranch» «elseBranch»)'''
 	}
 	
-	def dispatch String generateExpression(ArrayRead read) {
+	private def dispatch String generateExpression(ArrayRead read) {
 		val array = read.array.generateExpression
 		val index = read.index.generateExpression
 		
 		'''(select «array» «index»)'''
 	}
 	
-	def dispatch String generateExpression(ArrayWrite write) {
+	private def dispatch String generateExpression(ArrayWrite write) {
 		//TODO: change when array write has its own typing rule
 		val type = (write.array.type as ArrayDataType).contentType
 		val array = write.array.generateExpression
@@ -170,11 +165,11 @@ class SMTGenerator {
 		'''(store «array» «index» «value»)'''
 	}
 	
-	def dispatch generateExpression(Constant constant) {
+	private def dispatch generateExpression(Constant constant) {
 		constant.value
 	}
 	
-	def dispatch generateExpression(Variable variable) {
+	private def dispatch generateExpression(Variable variable) {
 		variable.attribute.name
 	}
 	
@@ -185,6 +180,9 @@ class SMTGenerator {
 			case Operator.MULT: '*'
 			// special treatment for division, '/' is only defined for Reals
 			case Operator.DIV: if (leftType.isIntType && rightType.isIntType) 'div' else '/'
+			case Operator.MOD: 'mod'
+			case Operator.AND: 'and'
+			case Operator.OR: 'or'
 			default: throw new IllegalArgumentException('Unknown operator: ' + operator)
 		}
 	}

@@ -19,6 +19,9 @@
     <eLiterals name="MINUS" value="1"/>
     <eLiterals name="MULT" value="2"/>
     <eLiterals name="DIV" value="3"/>
+    <eLiterals name="MOD" value="4"/>
+    <eLiterals name="AND" value="5"/>
+    <eLiterals name="OR" value="6"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="UnaryOperation" eSuperTypes="../../edu.kit.ipd.sdq.modsim.simspec.model.behavior/model/behavior.ecore#//Expression">
     <eStructuralFeatures xsi:type="ecore:EReference" name="operand" eType="ecore:EClass ../../edu.kit.ipd.sdq.modsim.simspec.model.behavior/model/behavior.ecore#//Expression"

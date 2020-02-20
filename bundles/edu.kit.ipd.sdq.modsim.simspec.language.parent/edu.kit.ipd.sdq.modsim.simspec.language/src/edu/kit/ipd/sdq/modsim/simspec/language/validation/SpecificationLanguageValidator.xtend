@@ -3,9 +3,9 @@
  */
 package edu.kit.ipd.sdq.modsim.simspec.language.validation
 
-import org.eclipse.xtext.validation.Check
 import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.EnumLiteral
 import edu.kit.ipd.sdq.modsim.simspec.model.expressions.ExpressionsPackage
+import org.eclipse.xtext.validation.Check
 
 /**
  * This class contains custom validation rules. 
@@ -22,7 +22,8 @@ class SpecificationLanguageValidator extends AbstractSpecificationLanguageValida
 				ExpressionsPackage.Literals.CONSTANT__VALUE)
 		}
 	}
-
+	
+//	
 //	public static val INVALID_NAME = 'invalidName'
 //
 //	@Check
@@ -33,9 +34,4 @@ class SpecificationLanguageValidator extends AbstractSpecificationLanguageValida
 //					INVALID_NAME)
 //		}
 //	}
-//	@Check
-//	def checkExpressionTest(Expression expr) {
-//		
-//	}
-//	
 }

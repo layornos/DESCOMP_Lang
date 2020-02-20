@@ -3,9 +3,21 @@
  */
 package edu.kit.ipd.sdq.modsim.simspec.language
 
+import org.eclipse.xtext.linking.lazy.LazyLinkingResource
 
 /**
  * Use this class to register components to be used at runtime / without the Equinox extension registry.
  */
 class SpecificationLanguageRuntimeModule extends AbstractSpecificationLanguageRuntimeModule {
+	
+	override bindXtextResource() {
+		EagerLazyLinkingResource
+	}
+}
+
+// https://www.eclipse.org/forums/index.php/t/136903/
+class EagerLazyLinkingResource extends LazyLinkingResource {
+	override isEagerLinking() {
+		true
+	}
 }

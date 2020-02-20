@@ -3,6 +3,9 @@
  */
 package edu.kit.ipd.sdq.modsim.simspec.language
 
+import org.eclipse.emf.ecore.EPackage
+import edu.kit.ipd.sdq.modsim.simspec.model.arrayoperations.ArrayoperationsPackage
+import com.google.inject.Injector
 
 /**
  * Initialization support for running Xtext languages without Equinox extension registry.
@@ -11,5 +14,11 @@ class SpecificationLanguageStandaloneSetup extends SpecificationLanguageStandalo
 
 	def static void doSetup() {
 		new SpecificationLanguageStandaloneSetup().createInjectorAndDoEMFRegistration()
+	}
+	
+	override register(Injector injector) {
+		//FIXME: language server doesn't find package without this, there should be a better solution (why does it find all other packages??)
+		EPackage.Registry.INSTANCE.put(ArrayoperationsPackage.eINSTANCE.nsURI, ArrayoperationsPackage.eINSTANCE)
+		super.register(injector)
 	}
 }

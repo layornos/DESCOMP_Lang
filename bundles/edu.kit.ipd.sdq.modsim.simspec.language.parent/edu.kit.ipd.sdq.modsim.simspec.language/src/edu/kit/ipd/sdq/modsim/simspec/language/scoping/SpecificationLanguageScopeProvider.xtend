@@ -3,11 +3,20 @@
  */
 package edu.kit.ipd.sdq.modsim.simspec.language.scoping
 
+import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.GEvent
+import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.GSchedules
+import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.SimFeature
+import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.SpecificationLanguagePackage
 import edu.kit.ipd.sdq.modsim.simspec.model.expressions.ExpressionsPackage
 import edu.kit.ipd.sdq.modsim.simspec.model.expressions.Variable
+import edu.kit.ipd.sdq.modsim.simspec.model.structure.Attribute
+import edu.kit.ipd.sdq.modsim.simspec.model.structure.Entity
 import edu.kit.ipd.sdq.modsim.simspec.model.structure.Event
+import edu.kit.ipd.sdq.modsim.simspec.model.structure.StructurePackage
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.EReference
+import org.eclipse.xtext.naming.QualifiedName
+import org.eclipse.xtext.scoping.IScope
 import org.eclipse.xtext.scoping.Scopes
 
 import static extension org.eclipse.xtext.EcoreUtil2.*
@@ -20,11 +29,32 @@ import static extension org.eclipse.xtext.EcoreUtil2.*
  */
 class SpecificationLanguageScopeProvider extends AbstractSpecificationLanguageScopeProvider {
 	
+	private def qualifiedAttributeName(Attribute attribute) {
+		QualifiedName.create(attribute.getContainerOfType(Entity).name, attribute.name)
+	}
+	
 	override getScope(EObject context, EReference reference) {
-		if (context instanceof Variable && reference == ExpressionsPackage.Literals.VARIABLE__ATTRIBUTE /*||
-			context instanceof WriteFunction && reference == SpecificationLanguagePackage.Literals.WRITE_FUNCTION__ATTRIBUTE*/) {
+		// scope of variable = read attributes of containing event
+		if (context instanceof Variable && reference == ExpressionsPackage.Literals.VARIABLE__ATTRIBUTE) {
 			val event = context.getContainerOfType(Event)
-			return Scopes.scopeFor(event.readAttributes)
+			val attributes = event.readAttributes
+			return Scopes.scopeFor(attributes, super.getScope(context, reference))
+		}
+		
+		// scope of events = events in this and all used features
+		if (context instanceof GSchedules && reference == SpecificationLanguagePackage.Literals.GSCHEDULES__END_EVENT) {
+			val features = (context.getContainerOfType(SimFeature) as SimFeature).uses.map[feature]
+			val events = features.map[events].flatten
+			return Scopes.scopeFor(events, super.getScope(context, reference))
+		}
+		
+		// scope of possible read attributes = attributes in this and all used features
+		if (context instanceof GEvent && reference == StructurePackage.Literals.EVENT__READ_ATTRIBUTES) {
+			val feature = context.getContainerOfType(SimFeature) as SimFeature
+			val uses = feature.uses.map[it.feature]
+			val entities = uses.map[entities].flatten + feature.entities
+			// custom qualified names are necessary for "Entity.Attribute" syntax			
+			return Scopes.scopeFor(entities.map[attributes].flatten, [qualifiedAttributeName], IScope.NULLSCOPE)
 		}
 		
 		super.getScope(context, reference)

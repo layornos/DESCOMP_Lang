@@ -9,20 +9,23 @@ import "http://www.eclipse.org/emf/2002/Ecore" as ecore
 
 generate specificationLanguage "http://www.kit.edu/ipd/sdq/modsim/simspec/language/SpecificationLanguage"
 
-//Simulator returns structure::Simulator:
-SimulatorSpecification:
-	(('name' '=' name=STRING) & ('description' '=' description=STRING)?)
-	(events+=Event | entities+=Entity | enums+=EnumDeclaration)*;
+SimModelElement:
+	{SimFeature} ('feature' name=QualifiedName
+	(uses+=UseFeature)*
+	(events+=Event | entities+=Entity | enums+=EnumDeclaration)*)
+	|
+	{SimSpecification} 'simulator' name=ID '{' 
+		('description' '=' description=STRING)?
+		('features' features+=[SimFeature|QualifiedName] (',' features+=[SimFeature|QualifiedName])*)? 
+	'}';
+	
+UseFeature: 'use' feature=[SimFeature];//importedNamespace=QualifiedNameWithWildcard;
 	
 Event returns structure::Event:
-	'event' name=ID ('{'
-		('reads' readAttributes+=[structure::Attribute|QualifiedName] (',' readAttributes+=[structure::Attribute|QualifiedName])*)?
-	'}')?
-	|
 	('event' {GEvent} name=ID '{'
 		('reads' readAttributes+=[structure::Attribute|QualifiedName] (',' readAttributes+=[structure::Attribute|QualifiedName])*)?
 		
-		(schedules+=GSchedules | writeAttributes+=GWritesAttribute | definitions+=Definition)+
+		(schedules+=GSchedules | writeAttributes+=GWritesAttribute | definitions+=Definition)*
 	'}')
 ;
 
@@ -68,16 +71,20 @@ Definition: 'def' name=ID '=' expression=Expression;
 
 enum Comp returns expr::Comparator: EQUAL = '==' | LESS_THAN = '<' | LESS_THAN_EQUAL = '<=' | GREATER_THAN = '>' | GREATER_THAN_EQUAL = '>=';
 enum OpPlusMinus returns expr::Operator: PLUS = '+' | MINUS = '-';
-enum OpMultDiv returns expr::Operator: MULT = '*' | DIV = '/'; 
+enum OpMultDiv returns expr::Operator: MULT = '*' | DIV = '/' | MOD = '%';
+enum OpBool returns expr::Operator: AND = '&&' | OR = '||'; 
 enum OpUnary returns expr::UnaryOperator: MINUS = '-' | NEGATION = '!'; // type cast is covered by separate Prefixed rule
 
 Expression returns behavior::Expression: 
-	Comparison | IfThenElse;
+	BoolOperation | IfThenElse;
 	
 IfThenElse returns expr::IfThenElse:
 	'if' condition=Expression 
 	'then' thenBranch=Expression 
 	(=> 'else' elseBranch=Expression);
+	
+BoolOperation returns behavior::Expression:
+	Comparison (({expr::BinaryOperation.left=current} operator=OpBool) right=Comparison)*;
 	
 Comparison returns behavior::Expression:
 	Addition (({expr::Comparison.left=current} comparator=Comp) right=Addition)*;
@@ -100,9 +107,9 @@ Suffixed returns behavior::Expression:
 	Atomic (({array::ArrayRead.array=current}) '[' index=Expression ']')*;
 
 Atomic returns behavior::Expression:
-	'(' Expression ')' | 
+	'(' Expression ')' |
+	{expr::Variable} attribute=[structure::Attribute] | 
 	Constant | 
-	{expr::Variable} attribute=[structure::Attribute] |
 	{DefinitionReference} '$' definition=[Definition];
 
 Constant returns expr::Constant: 
@@ -113,6 +120,8 @@ Constant returns expr::Constant:
 
 QualifiedName:
     ID ('.' ID)*;
+    
+QualifiedNameWithWildcard: QualifiedName '.*'?;
 
 S_INT: INT;
 DOUBLE: INT (('.' INT+) | ('d' | 'D') | (('.' INT+) ('d' | 'D')));

@@ -3,7 +3,10 @@ package edu.kit.ipd.sdq.modsim.simspec.language.generator
 import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.GEvent
 import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.GSchedules
 import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.GWritesAttribute
-import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.SimulatorSpecification
+import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.SimSpecification
+import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.WriteToArray
+import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.WriteToValue
+import edu.kit.ipd.sdq.modsim.simspec.model.arrayoperations.ArrayoperationsFactory
 import edu.kit.ipd.sdq.modsim.simspec.model.behavior.BehaviorContainer
 import edu.kit.ipd.sdq.modsim.simspec.model.behavior.BehaviorFactory
 import edu.kit.ipd.sdq.modsim.simspec.model.behavior.Expression
@@ -15,38 +18,38 @@ import edu.kit.ipd.sdq.modsim.simspec.model.structure.Event
 import edu.kit.ipd.sdq.modsim.simspec.model.structure.StructureFactory
 import java.util.List
 import org.eclipse.emf.ecore.EObject
-import org.eclipse.emf.ecore.resource.Resource
-import edu.kit.ipd.sdq.modsim.simspec.arrayoperations.ArrayoperationsFactory
-import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.WriteToValue
-import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.WriteToArray
 import org.eclipse.emf.ecore.util.EcoreUtil
 
 class SimulationModelTransform {
-	val Resource source
+	val SimSpecification source
 
 	BehaviorContainer behavior
 
-	new(Resource source) {
+	new(SimSpecification source) {
 		this.source = source
 	}
 
 	def List<EObject> transform() {
-		val specification = source.allContents.filter(SimulatorSpecification).head as SimulatorSpecification
+		val features = source.features
+		
+		val entities = features.map[entities.clone.toList].flatten
+		val events = features.map[events.clone.toList].flatten
+		val declarations = features.map[enums.clone.toList].flatten
 		
 		// Init model root objects
 		val sim = StructureFactory.eINSTANCE.createSimulator
 		behavior = BehaviorFactory.eINSTANCE.createBehaviorContainer
 		val enums = DatatypesFactory.eINSTANCE.createEnumDeclarationContainer
 		
-		sim.name = specification.name
-		sim.description = specification.description
+		sim.name = source.name
+		sim.description = source.description
 		// Entites and enum declarations need no change in their structure, so they are just added to their new containers.
 		// (that also keeps the references) 
-		sim.entities.addAll(specification.entities)
-		enums.declarations.addAll(specification.enums)
-
-		val events = specification.events.map[transformEvent].clone
-		sim.events.addAll(events)
+		sim.entities.addAll(entities)
+		enums.declarations.addAll(declarations)
+		
+		val eventsCopy = events.map[transformEvent].clone
+		sim.events.addAll(eventsCopy)
 
 		#[sim, behavior, enums]
 	}

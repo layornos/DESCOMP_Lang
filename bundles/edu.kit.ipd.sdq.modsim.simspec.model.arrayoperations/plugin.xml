@@ -10,7 +10,7 @@
       <!-- @generated arrayoperations -->
       <package
             uri="http://www.example.org/arrayoperations"
-            class="edu.kit.ipd.sdq.modsim.simspec.arrayoperations.ArrayoperationsPackage"
+            class="edu.kit.ipd.sdq.modsim.simspec.model.arrayoperations.ArrayoperationsPackage"
             genModel="model/arrayoperations.genmodel"/>
    </extension>
 

@@ -3,10 +3,37 @@
  */
 package edu.kit.ipd.sdq.modsim.simspec.language.ui.contentassist
 
+import org.eclipse.emf.ecore.EObject
+import org.eclipse.xtext.ui.editor.contentassist.ICompletionProposalAcceptor
+import org.eclipse.xtext.Assignment
+import org.eclipse.xtext.ui.editor.contentassist.ContentAssistContext
+
+import static extension org.eclipse.xtext.EcoreUtil2.*
+import edu.kit.ipd.sdq.modsim.simspec.model.structure.Event
+import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.EnumLiteral
+import edu.kit.ipd.sdq.modsim.simspec.model.expressions.ExpressionsPackage
 
 /**
  * See https://www.eclipse.org/Xtext/documentation/304_ide_concepts.html#content-assist
  * on how to customize the content assistant.
  */
 class SpecificationLanguageProposalProvider extends AbstractSpecificationLanguageProposalProvider {
+	
+	// add available attributes to expression suggestions
+	override completeAtomic_Attribute(EObject model, Assignment assignment, ContentAssistContext context, ICompletionProposalAcceptor acceptor) {
+		super.completeAtomic_Attribute(model, assignment, context, acceptor)
+		val event = model.getContainerOfType(Event)
+		val attributes = event.readAttributes
+		
+		attributes.forEach[acceptor.accept(createCompletionProposal(it.name, context))] 
+	}
+	
+	// add enum literals to enum constant suggestions
+	override completeConstant_Value(EObject model, Assignment assignment, ContentAssistContext context, ICompletionProposalAcceptor acceptor) {
+		super.completeConstant_Value(model, assignment, context, acceptor)
+		
+		if (model instanceof EnumLiteral && assignment.feature == ExpressionsPackage.Literals.CONSTANT__VALUE.name) {
+			(model as EnumLiteral).declaration.literals.forEach[acceptor.accept(createCompletionProposal(it, context))]
+		}
+	}
 }

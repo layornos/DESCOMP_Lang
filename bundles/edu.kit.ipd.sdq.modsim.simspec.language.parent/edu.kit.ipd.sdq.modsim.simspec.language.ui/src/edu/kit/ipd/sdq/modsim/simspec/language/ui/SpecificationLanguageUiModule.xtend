@@ -15,4 +15,5 @@ class SpecificationLanguageUiModule extends AbstractSpecificationLanguageUiModul
 	def Class<? extends IEObjectHoverProvider> bindIEObjectHoverProvider() {
 		return SpecificationLanguageEObjectHoverProvider
 	}
+
 }

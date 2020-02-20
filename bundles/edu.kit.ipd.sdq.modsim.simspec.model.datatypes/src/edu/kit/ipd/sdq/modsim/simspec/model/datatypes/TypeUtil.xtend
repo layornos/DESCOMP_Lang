@@ -6,6 +6,9 @@ import edu.kit.ipd.sdq.modsim.simspec.model.datatypes.DatatypesFactory
 import edu.kit.ipd.sdq.modsim.simspec.model.datatypes.PrimitiveType
 import org.eclipse.emf.ecore.util.EcoreUtil
 
+/**
+ * Contains static utility methods for Data Types.
+ */
 class TypeUtil {
 	def static createIntType() {
 		DatatypesFactory.eINSTANCE.createBaseDataType => [
@@ -74,5 +77,14 @@ class TypeUtil {
 		if (type1.isDoubleType || type2.isDoubleType)
 			return createDoubleType
 		return EcoreUtil.copy(type1)
+	}
+	
+	def static String typeName(DataType type) {
+		switch (type) {
+			BaseDataType: type.primitiveType.toString
+			EnumType: type.declaration.name
+			ArrayDataType: '''ARRAY[«type.contentType.typeName»]'''
+			default: 'UNKNOWN TYPE'
+		}
 	}
 }

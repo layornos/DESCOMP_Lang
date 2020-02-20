@@ -1,5 +1,12 @@
 package edu.kit.ipd.sdq.modsim.simspec.export
 
+import edu.kit.ipd.sdq.modsim.simspec.model.behavior.BehaviorContainer
+import edu.kit.ipd.sdq.modsim.simspec.model.behavior.Schedules
+import edu.kit.ipd.sdq.modsim.simspec.model.behavior.WritesAttribute
+import edu.kit.ipd.sdq.modsim.simspec.model.datatypes.TypeUtil
+import edu.kit.ipd.sdq.modsim.simspec.model.structure.Attribute
+import edu.kit.ipd.sdq.modsim.simspec.model.structure.Entity
+import edu.kit.ipd.sdq.modsim.simspec.model.structure.Event
 import edu.kit.ipd.sdq.modsim.simspec.model.structure.Simulator
 import edu.kit.ipd.sdq.modsim.simspec.model.structure.StructurePackage
 import org.eclipse.emf.common.util.URI
@@ -7,34 +14,55 @@ import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl
 import org.neo4j.ogm.config.Configuration
+import org.neo4j.ogm.cypher.ComparisonOperator
+import org.neo4j.ogm.cypher.Filter
+import org.neo4j.ogm.session.Session
 import org.neo4j.ogm.session.SessionFactory
-import edu.kit.ipd.sdq.modsim.simspec.model.structure.Entity
-import edu.kit.ipd.sdq.modsim.simspec.model.structure.Attribute
-import edu.kit.ipd.sdq.modsim.simspec.model.structure.Event
-import edu.kit.ipd.sdq.modsim.simspec.model.behavior.BehaviorContainer
-import edu.kit.ipd.sdq.modsim.simspec.model.datatypes.DataType
-import edu.kit.ipd.sdq.modsim.simspec.model.datatypes.BaseDataType
-import edu.kit.ipd.sdq.modsim.simspec.model.behavior.Schedules
-import edu.kit.ipd.sdq.modsim.simspec.model.behavior.WritesAttribute
-import edu.kit.ipd.sdq.modsim.simspec.model.datatypes.EnumType
-import edu.kit.ipd.sdq.modsim.simspec.model.datatypes.ArrayDataType
 
 class DescompExport {
+	Session session
 	
-	def void uploadSimulator(URI uri) {
+	/**
+	 * Deletes all simulators with the given name from the database.
+	 */
+	private def deleteConflictingSimulators(String name) {
+		val conflicting = session.loadAll(DescompSimulator, new Filter('name', ComparisonOperator.EQUALS, name), 3)
+		conflicting.forEach[deleteSimulator]
+	}
+	
+	private def deleteSimulator(DescompSimulator sim) {
+		val entities = sim.entities
+		val attributes = entities.map[attributes].flatten
+		val events = sim.events
+		
+		session.delete(sim)
+		session.delete(entities + attributes + events)
+	}
+	
+	/**
+	 * Uploads a simulator to a Neo4J database.
+	 * 
+	 * @param path The absolute path to the XMI ecore file the contains the simulator.
+	 * @param uri The URI of the Neo4J server.
+	 * @param username The username used to connect to the database.
+	 * @param password The password used to connect to the database.
+	 */
+	def void uploadSimulator(String path, String uri, String username, String password) {
 		StructurePackage.eINSTANCE.eClass
 		
+		// init resources
 		val reg = Resource.Factory.Registry.INSTANCE
 		reg.extensionToFactoryMap.put("structure", new XMIResourceFactoryImpl)
 		val resSet = new ResourceSetImpl
 		
-		val resource = resSet.getResource(uri, true)
+		val fileUri = URI.createFileURI(path)
+		val resource = resSet.getResource(fileUri, true)
 		
+		// load simulator from ecore file
 		val sim = resource.contents.filter(Simulator).head
 		val behavior = resource.contents.filter(BehaviorContainer).head
 		
-		
-		
+		// transform to Neo4J model and generate SMT
 		val generator = new SMTGenerator()
 		
 		val simExport = sim.export
@@ -43,29 +71,28 @@ class DescompExport {
 		
 		// save to database
 		val config = new Configuration.Builder()
-			.uri('bolt://localhost:7687')
-			.credentials('neo4j', 'ZtA6tdah1FxB')
+			.uri(uri)
+			.credentials(username, password)
 			.build()
-		val factory = new SessionFactory(config, 'edu.kit.ipd.sdq.modsim.simspec.export')
+		val factory = new SessionFactory(config, DescompSimulator.package.name)
 		
-		println('start connecting')
-		val session = factory.openSession
-		println('connected!')
+		println('Connecting to ' + uri + '...')
+		session = factory.openSession
+		println('Connected!')
 		
-		//val conflicting = session.loadAll(DataSimulator, new Filter('name', ComparisonOperator.EQUALS, simExport.name), 4)
-		//session.delete(conflicting)
-		session.purgeDatabase
+		deleteConflictingSimulators(simExport.name)
 		
 		session.save(simExport)
 		session.save(schedules)
 		session.save(writes)
 		
-		println('saved!')
+		println('Simulator saved!')
 		
 		factory.close
 	}
 	
-	def exportSchedules(Schedules schedules, SMTGenerator generator) {
+	// Transform methods for relationships schedules and writes attribute
+	private def exportSchedules(Schedules schedules, SMTGenerator generator) {
 		new DescompSchedules => [
 			startEvent = schedules.startEvent.export
 			endEvent = schedules.endEvent.export
@@ -75,7 +102,7 @@ class DescompExport {
 		]
 	}
 	
-	def exportWritesAttribute(WritesAttribute writes, SMTGenerator generator) {
+	private def exportWritesAttribute(WritesAttribute writes, SMTGenerator generator) {
 		new DescompWritesAttribute => [
 			startEvent = writes.event.export
 			attribute = writes.attribute.export
@@ -85,34 +112,26 @@ class DescompExport {
 		]
 	}
 	
-	def create result: new DescompSimulator export(Simulator sim) {
+	// Transform methods for objects
+	private def create result: new DescompSimulator export(Simulator sim) {
 		result.name = sim.name
 		result.description = sim.description
 		result.entities = sim.entities.map[export].toSet
 		result.events = sim.events.map[export].toSet
 	}
 	
-	def create result: new DescompEntity export(Entity entity) {
+	private def create result: new DescompEntity export(Entity entity) {
 		result.name = entity.name
 		result.attributes = entity.attributes.map[export].toSet
 	}
 	
-	def create result: new DescompAttribute export(Attribute attribute) {
+	private def create result: new DescompAttribute export(Attribute attribute) {
 		result.name = attribute.name
-		result.type = attribute.type.typeName
+		result.type = TypeUtil.typeName(attribute.type)
 	}
 	
-	def create result: new DescompEvent export(Event event) {
+	private def create result: new DescompEvent export(Event event) {
 		result.name = event.name
 		result.readAttribute = event.readAttributes.map[export].toSet
-	}
-	
-	def String typeName(DataType type) {
-		switch (type) {
-			BaseDataType: type.primitiveType.toString
-			EnumType: type.declaration.name
-			ArrayDataType: '''ARRAY[«type.contentType.typeName»]'''
-			default: 'UNKNOWN TYPE'
-		}
 	}
 }

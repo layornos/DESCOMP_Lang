@@ -4,28 +4,29 @@ import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.Definition
 import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.DefinitionReference
 import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.Delay
 import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.DoubleLiteral
+import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.EnumLiteral
 import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.IntLiteral
+import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.TypeCast
 import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.WriteFunction
+import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.WriteToArray
+import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.WriteToValue
 import edu.kit.ipd.sdq.modsim.simspec.language.validation.AbstractSpecificationLanguageValidator
+import edu.kit.ipd.sdq.modsim.simspec.model.arrayoperations.ArrayRead
 import edu.kit.ipd.sdq.modsim.simspec.model.behavior.Expression
+import edu.kit.ipd.sdq.modsim.simspec.model.datatypes.ArrayDataType
 import edu.kit.ipd.sdq.modsim.simspec.model.datatypes.DataType
+import edu.kit.ipd.sdq.modsim.simspec.model.expressions.BinaryOperation
 import edu.kit.ipd.sdq.modsim.simspec.model.expressions.Comparator
 import edu.kit.ipd.sdq.modsim.simspec.model.expressions.Comparison
 import edu.kit.ipd.sdq.modsim.simspec.model.expressions.IfThenElse
+import edu.kit.ipd.sdq.modsim.simspec.model.expressions.UnaryOperation
+import edu.kit.ipd.sdq.modsim.simspec.model.expressions.UnaryOperator
 import edu.kit.ipd.sdq.modsim.simspec.model.expressions.Variable
 import org.eclipse.emf.ecore.util.EcoreUtil
 
 import static extension edu.kit.ipd.sdq.modsim.simspec.language.typing.DefinitionUtil.*
 import static extension edu.kit.ipd.sdq.modsim.simspec.model.datatypes.TypeUtil.*
-import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.EnumLiteral
-import edu.kit.ipd.sdq.modsim.simspec.arrayoperations.ArrayRead
-import edu.kit.ipd.sdq.modsim.simspec.model.datatypes.ArrayDataType
-import edu.kit.ipd.sdq.modsim.simspec.model.expressions.BinaryOperation
-import edu.kit.ipd.sdq.modsim.simspec.model.expressions.UnaryOperation
-import edu.kit.ipd.sdq.modsim.simspec.model.expressions.UnaryOperator
-import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.TypeCast
-import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.WriteToValue
-import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.WriteToArray
+import edu.kit.ipd.sdq.modsim.simspec.model.expressions.Operator
 
 system edu.kit.ipd.sdq.modsim.simspec.language.typing.ExpressionTyping
 
@@ -73,8 +74,19 @@ from {
 	G |- op.left : var DataType leftType
 	G |- op.right : var DataType rightType
 	
-	leftType.isNumberType && rightType.isNumberType
-	type = combinedType(leftType, rightType)
+	{
+		op.operator == Operator.AND || op.operator == Operator.OR
+		leftType.isBoolType && rightType.isBoolType
+		type = createBoolType
+	} or {
+		op.operator == Operator.MOD
+		leftType.isIntType && rightType.isIntType
+		type = createIntType
+	} or {
+		op.operator != Operator.MOD
+		leftType.isNumberType && rightType.isNumberType
+		type = combinedType(leftType, rightType)	
+	}
 }
 
 rule UnaryOperation
@@ -185,9 +197,9 @@ from {
 	G |- writes.value : var DataType valueType
 	
 	val attrType = writes.attribute.type
-	compatible(valueType, attrType)
+	typesEqual(valueType, attrType)
 	or {
-		fail error 'Incompatible types: Expected ' + attrType + ' but found ' + valueType  source writes.value
+		fail error 'Incompatible types: Expected ' + attrType.typeName + ' but found ' + valueType.typeName  source writes.value
 	}
 }
 
@@ -204,8 +216,8 @@ from {
 	indexType.isIntType
 		or fail error 'Index must be an integer.' source writes.index
 	val contentType = (attrType as ArrayDataType).contentType
-	compatible(valueType, contentType)
-		or fail error 'Incompatible types: Expected ' + contentType + ' but found ' + valueType  source writes.value
+	typesEqual(valueType, contentType)
+		or fail error 'Incompatible types: Expected ' + contentType.typeName + ' but found ' + valueType.typeName  source writes.value
 }
 
 

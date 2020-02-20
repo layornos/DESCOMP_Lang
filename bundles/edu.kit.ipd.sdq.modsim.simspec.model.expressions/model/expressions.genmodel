@@ -15,6 +15,9 @@
       <genEnumLiterals ecoreEnumLiteral="expressions.ecore#//Operator/MINUS"/>
       <genEnumLiterals ecoreEnumLiteral="expressions.ecore#//Operator/MULT"/>
       <genEnumLiterals ecoreEnumLiteral="expressions.ecore#//Operator/DIV"/>
+      <genEnumLiterals ecoreEnumLiteral="expressions.ecore#//Operator/MOD"/>
+      <genEnumLiterals ecoreEnumLiteral="expressions.ecore#//Operator/AND"/>
+      <genEnumLiterals ecoreEnumLiteral="expressions.ecore#//Operator/OR"/>
     </genEnums>
     <genEnums typeSafeEnumCompatible="false" ecoreEnum="expressions.ecore#//UnaryOperator">
       <genEnumLiterals ecoreEnumLiteral="expressions.ecore#//UnaryOperator/MINUS"/>

@@ -3,9 +3,12 @@
  */
 package edu.kit.ipd.sdq.modsim.simspec.language.generator
 
+import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.SimModelElement
+import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.SimSpecification
 import java.io.IOException
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl
+import org.eclipse.emf.ecore.util.Diagnostician
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl
 import org.eclipse.xtext.generator.AbstractGenerator
 import org.eclipse.xtext.generator.IFileSystemAccess2
@@ -19,10 +22,18 @@ import org.eclipse.xtext.generator.IGeneratorContext
 class SpecificationLanguageGenerator extends AbstractGenerator {
 
 	override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
-		val t = new SimulationModelTransform(resource)
-		val objects = t.transform
+		val element = resource.contents.filter(SimModelElement).head as SimModelElement
+		if (!(element instanceof SimSpecification)) return
 		
-		// write resource to file
+		// validate all features to make sure all expressions have types
+		val features = (element as SimSpecification).features
+		features.forEach[Diagnostician.INSTANCE.validate(it)]
+		
+		// transform the model to a *.simspec.model - only model
+		val transform = new SimulationModelTransform(element as SimSpecification)
+		val objects = transform.transform
+		
+		// write all root objects to an XMI file
 		val reg = Resource.Factory.Registry.INSTANCE
 		reg.extensionToFactoryMap.put("structure", new XMIResourceFactoryImpl)
 		

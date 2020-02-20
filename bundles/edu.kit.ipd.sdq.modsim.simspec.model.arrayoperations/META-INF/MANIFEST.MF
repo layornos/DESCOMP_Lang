@@ -8,9 +8,9 @@ Bundle-ClassPath: .
 Bundle-Vendor: %providerName
 Bundle-Localization: plugin
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
-Export-Package: edu.kit.ipd.sdq.modsim.simspec.arrayoperations,
- edu.kit.ipd.sdq.modsim.simspec.arrayoperations.impl,
- edu.kit.ipd.sdq.modsim.simspec.arrayoperations.util
+Export-Package: edu.kit.ipd.sdq.modsim.simspec.model.arrayoperations,
+ edu.kit.ipd.sdq.modsim.simspec.model.arrayoperations.impl,
+ edu.kit.ipd.sdq.modsim.simspec.model.arrayoperations.util
 Require-Bundle: org.eclipse.emf.ecore;visibility:=reexport,
  edu.kit.ipd.sdq.modsim.simspec.model.behavior;visibility:=reexport,
  edu.kit.ipd.sdq.modsim.simspec.model.datatypes;visibility:=reexport,
