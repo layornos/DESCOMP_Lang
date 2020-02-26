@@ -13,7 +13,6 @@ import java.io.File
 
 class LaunchShortcut implements ILaunchShortcut {
 	static val PROPERTIES_FILE = 'export.properties'
-	static val OUTPUT_FILE = 'src-gen/output.structure'
 	
 	static val PROP_URI_KEY = 'neo4j.uri'
 	static val PROP_NAME_KEY = 'neo4j.username'
@@ -33,6 +32,7 @@ class LaunchShortcut implements ILaunchShortcut {
 		}
 		
 		val file = structured.firstElement as org.eclipse.core.internal.resources.File
+		val outputFile = new File(file.locationURI)
 		val projectRoot = new File(file.project.locationURI)
 		
 		val properties = getExportProperties(projectRoot)
@@ -42,9 +42,9 @@ class LaunchShortcut implements ILaunchShortcut {
 		val username = properties.getProperty(PROP_NAME_KEY)
 		val password = properties.getProperty(PROP_PASSWORD_KEY)
 		
-		val output = new java.io.File(projectRoot, OUTPUT_FILE)
+		//val output = new java.io.File(projectRoot, OUTPUT_FILE)
 		val export = new DescompExport
-		export.uploadSimulator(output.absolutePath, uri, username, password)
+		export.uploadSimulator(outputFile.absolutePath, uri, username, password)
 	}
 	
 	def getExportProperties(File projectRoot) {

@@ -81,22 +81,12 @@ class SimulationModelTransform {
 			event = e
 			attribute = writes.writeFunction.attribute
 			// TODO: validate expression types
-			//writeFunction = copyExpression(writes.writeFunction.value)
 			
 			val function = writes.writeFunction
 			writeFunction = switch (function) {
 				WriteToValue: copyExpression(function.value)
-				WriteToArray: ArrayoperationsFactory.eINSTANCE.createArrayWrite => [
-					type = EcoreUtil.copy(function.attribute.type)
-					array = ExpressionsFactory.eINSTANCE.createVariable => [
-						attribute = function.attribute
-						type = EcoreUtil.copy(function.attribute.type)
-					]
-					index = copyExpression(function.index)
-					value = copyExpression(function.value)
-				]
+				WriteToArray: createArrayWrite(function)
 			}
-			
 			
 			condition = copyExpression(writes.conditionSpec?.condition ?: createDefaultCondition)
 		]
@@ -111,6 +101,18 @@ class SimulationModelTransform {
     	val result = copier.copy(expr);
     	copier.copyReferences();
     	return result as Expression
+	}
+	
+	private def createArrayWrite(WriteToArray function) {
+		ArrayoperationsFactory.eINSTANCE.createArrayWrite => [
+			type = EcoreUtil.copy(function.attribute.type)
+			array = ExpressionsFactory.eINSTANCE.createVariable => [
+				attribute = function.attribute
+				type = EcoreUtil.copy(function.attribute.type)
+			]
+			index = copyExpression(function.index)
+			value = copyExpression(function.value)
+		]
 	}
 	
 	private def createDefaultDelay() {

@@ -13,7 +13,7 @@
 					<with variable="selection">
 						<count value="1"/>
 						<iterate>
-							<test property="org.eclipse.debug.ui.matchesPattern" value="*.simspec"/>
+							<test property="org.eclipse.debug.ui.matchesPattern" value="*.structure"/>
 						</iterate>
 					</with>
 				</enablement>

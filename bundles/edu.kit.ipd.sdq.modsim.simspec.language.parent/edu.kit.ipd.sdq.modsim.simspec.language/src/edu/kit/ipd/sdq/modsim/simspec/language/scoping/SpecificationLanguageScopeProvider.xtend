@@ -20,6 +20,7 @@ import org.eclipse.xtext.scoping.IScope
 import org.eclipse.xtext.scoping.Scopes
 
 import static extension org.eclipse.xtext.EcoreUtil2.*
+import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.WriteFunction
 
 /**
  * This class contains custom scoping description.
@@ -50,6 +51,15 @@ class SpecificationLanguageScopeProvider extends AbstractSpecificationLanguageSc
 		
 		// scope of possible read attributes = attributes in this and all used features
 		if (context instanceof GEvent && reference == StructurePackage.Literals.EVENT__READ_ATTRIBUTES) {
+			val feature = context.getContainerOfType(SimFeature) as SimFeature
+			val uses = feature.uses.map[it.feature]
+			val entities = uses.map[entities].flatten + feature.entities
+			// custom qualified names are necessary for "Entity.Attribute" syntax			
+			return Scopes.scopeFor(entities.map[attributes].flatten, [qualifiedAttributeName], IScope.NULLSCOPE)
+		}
+		
+		// scope of possible write attributes = attributes in this and all used features (similar to read attributes)
+		if (context instanceof WriteFunction && reference == SpecificationLanguagePackage.Literals.WRITE_FUNCTION__ATTRIBUTE) {
 			val feature = context.getContainerOfType(SimFeature) as SimFeature
 			val uses = feature.uses.map[it.feature]
 			val entities = uses.map[entities].flatten + feature.entities

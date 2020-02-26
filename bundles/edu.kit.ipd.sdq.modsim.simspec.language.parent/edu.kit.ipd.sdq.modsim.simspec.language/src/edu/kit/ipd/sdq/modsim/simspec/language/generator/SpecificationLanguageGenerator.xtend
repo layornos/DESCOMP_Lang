@@ -13,6 +13,7 @@ import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl
 import org.eclipse.xtext.generator.AbstractGenerator
 import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
+import edu.kit.ipd.sdq.modsim.simspec.model.behavior.BehaviorContainer
 
 /**
  * Generates code from your model files on save.
@@ -20,25 +21,32 @@ import org.eclipse.xtext.generator.IGeneratorContext
  * See https://www.eclipse.org/Xtext/documentation/303_runtime_concepts.html#code-generation
  */
 class SpecificationLanguageGenerator extends AbstractGenerator {
-
 	override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
-		val element = resource.contents.filter(SimModelElement).head as SimModelElement
+		val element = resource.contents.filter(SimModelElement).head
 		if (!(element instanceof SimSpecification)) return
 		
+		val simulator = element as SimSpecification
+		
 		// validate all features to make sure all expressions have types
-		val features = (element as SimSpecification).features
+		val features = simulator.features
 		features.forEach[Diagnostician.INSTANCE.validate(it)]
 		
 		// transform the model to a *.simspec.model - only model
 		val transform = new SimulationModelTransform(element as SimSpecification)
 		val objects = transform.transform
 		
+		
+		// generate event schedules diagram
+		val behavior = objects.filter(BehaviorContainer).head
+		fsa.generateFile(simulator.name + '-events.plantuml', PlantUMLGenerator.generateEventDiagram(features, behavior))
+		
+		
 		// write all root objects to an XMI file
 		val reg = Resource.Factory.Registry.INSTANCE
 		reg.extensionToFactoryMap.put("structure", new XMIResourceFactoryImpl)
 		
 		val resSet = new ResourceSetImpl
-		val res = resSet.createResource(fsa.getURI("output.structure"))
+		val res = resSet.createResource(fsa.getURI(simulator.name + '.structure'))
 		
 		res.contents.addAll(objects)
 		
