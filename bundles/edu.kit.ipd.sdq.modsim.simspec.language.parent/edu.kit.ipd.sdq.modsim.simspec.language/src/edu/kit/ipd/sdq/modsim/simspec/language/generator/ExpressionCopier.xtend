@@ -7,7 +7,15 @@ import edu.kit.ipd.sdq.modsim.simspec.model.expressions.Constant
 import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.DefinitionReference
 import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.TypeCast
 import edu.kit.ipd.sdq.modsim.simspec.model.expressions.UnaryOperator
+import edu.kit.ipd.sdq.modsim.simspec.model.behavior.Expression
 
+/**
+ * A subclass of {@link EcoreUtil.Copier} to copy an {@link Expression} and transform it
+ * to an {@link Expression} that only contains classes of the {@code simspec.model.expressions}
+ * package.
+ * 
+ * @author Eric Hamann
+ */
 class ExpressionCopier extends EcoreUtil.Copier {
 	override copy(EObject object) {
 		// subclasses of Constant only exist in the language model to make parsing/typing easier.

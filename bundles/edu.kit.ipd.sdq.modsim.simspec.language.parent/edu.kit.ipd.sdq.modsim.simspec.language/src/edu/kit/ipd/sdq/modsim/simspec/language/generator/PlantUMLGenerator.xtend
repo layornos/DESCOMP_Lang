@@ -4,7 +4,17 @@ import java.util.List
 import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.SimFeature
 import edu.kit.ipd.sdq.modsim.simspec.model.behavior.BehaviorContainer
 
+/**
+ * Contains a few static methods to create plantuml diagrams from a simulation specification.
+ * 
+ * @author Eric Hamann
+ */
 class PlantUMLGenerator {
+	
+	/**
+	 * Creates a plantuml diagram showing events as nodes and schedules relationships as arrows
+	 * connecting them.
+	 */
 	static def generateEventDiagram(List<SimFeature> features, BehaviorContainer behavior) '''
 		@startuml
 		hide circle

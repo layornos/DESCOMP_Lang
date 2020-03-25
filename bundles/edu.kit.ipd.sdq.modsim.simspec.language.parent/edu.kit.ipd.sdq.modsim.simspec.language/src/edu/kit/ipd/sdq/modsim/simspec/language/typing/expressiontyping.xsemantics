@@ -7,7 +7,6 @@ import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.DoubleLiter
 import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.EnumLiteral
 import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.IntLiteral
 import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.TypeCast
-import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.WriteFunction
 import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.WriteToArray
 import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.WriteToValue
 import edu.kit.ipd.sdq.modsim.simspec.language.validation.AbstractSpecificationLanguageValidator
@@ -34,13 +33,11 @@ validatorExtends AbstractSpecificationLanguageValidator
 
 judgments {
 	type |- Expression expression : output DataType
-		error "cannot type " + stringRep(expression)
+		error 'cannot type ' + stringRep(expression)
 		source expression
-	
-	delay |- Delay delay
-	cond ||- Condition cond
-	writeFunction |= WriteFunction write
 }
+
+// ATOMIC EXPRESSIONS
 
 axiom IntLiteral
 	G |- IntLiteral literal : createIntType
@@ -58,6 +55,8 @@ axiom EnumLiteral
 	G |- EnumLiteral literal : createEnumType(literal.declaration)
 
 
+// EXPRESSION RULES
+
 rule DefReference
 	G |- DefinitionReference ref : DataType type
 from {
@@ -66,7 +65,6 @@ from {
 	G |- ref.definition.expression : var DataType exprType
 	type = EcoreUtil.copy(exprType)
 }
-
 
 rule Operation
 	G |- BinaryOperation op : DataType type
@@ -150,51 +148,11 @@ from {
 }
 
 
+// CHECKRULES
 
-
-rule Delay
-	G |- Delay delay
+checkrule WritesValue for WriteToValue writes
 from {
-	G |- delay.delay : var DataType delayType
-	
-	delayType.isNumberType
-	or {
-		fail error 'Delay must be a number' source delay.delay
-	}
-}
-
-rule Condition
-	G ||- Condition cond
-from {
-	G |- cond.^condition : var DataType conditionType
-	
-	conditionType.isBoolType
-	or {
-		fail error 'Delay must be a boolean' source cond.^condition
-	}
-}
-
-//rule Writes
-//	G |= WriteFunction writes
-//from {
-//	G |- writes.value : var DataType valueType
-//	
-//	val attrType = writes.attribute.type
-//	
-//	{
-//		writes
-//	}
-//	
-//	compatible(valueType, attrType)
-//	or {
-//		fail error 'Incompatible types: Expected ' + attrType + ' but found ' + valueType  source writes.value
-//	}
-//}
-
-rule WritesValue
-	G |= WriteToValue writes
-from {
-	G |- writes.value : var DataType valueType
+	empty |- writes.value : var DataType valueType
 	
 	val attrType = writes.attribute.type
 	typesEqual(valueType, attrType)
@@ -203,11 +161,10 @@ from {
 	}
 }
 
-rule WritesArray
-	G |= WriteToArray writes
+checkrule WritesArray for WriteToArray writes
 from {
-	G |- writes.value : var DataType valueType
-	G |- writes.index : var DataType indexType
+	empty |- writes.value : var DataType valueType
+	empty |- writes.index : var DataType indexType
 	
 	val attrType = writes.attribute.type
 	
@@ -221,36 +178,39 @@ from {
 }
 
 
+checkrule Delay for Delay delay
+from {
+	empty |- delay.delay : var DataType delayType
+	
+	delayType.isNumberType
+	or {
+		fail error 'Delay must be a number' source delay.delay
+	}
+}
 
+checkrule Condition for Condition cond
+from {
+	empty |- cond.^condition : var DataType conditionType
+	
+	conditionType.isBoolType
+	or {
+		fail error 'Delay must be a boolean' source cond.^condition
+	}
+}
+
+// additional check to make sure definitions don't contain cycles
 checkrule Definition for
 	Definition def
 from {
 	!def.containsCycles
-	or {
-		fail error 'Definition contains cycles!'
-	}
+	or fail error 'Definition contains cycles!'
 }
 
-
-
-checkrule CheckAllDelays for
-	Delay delay
-from { empty |- delay }
-
-checkrule CheckAllConditions for
-	Condition cond
-from { empty ||- cond }
-
-checkrule CheckAllWrites for
-	WriteFunction write
-from { empty |= write }
-
-
-checkrule CheckVariable for
+// important rule to actually check that all expressions can be typed
+// and to store the types in the expression objects
+checkrule CheckExpressions for
 	Expression expression
 from {
 	empty |- expression : var DataType type
-	
-	//expression.type = EcoreUtil.copy(type)
 	expression.type = type
 }

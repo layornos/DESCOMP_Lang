@@ -19,16 +19,33 @@ import edu.kit.ipd.sdq.modsim.simspec.model.structure.StructureFactory
 import java.util.List
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.util.EcoreUtil
+import edu.kit.ipd.sdq.modsim.simspec.model.datatypes.EnumDeclarationContainer
+import edu.kit.ipd.sdq.modsim.simspec.model.structure.Simulator
 
+/**
+ * Transforms an instance of the Xtext language model (simspec.language.SpecificationLanguage) 
+ * to an instance of the modular simulation model (simspec.model). Initialize the transform
+ * with a root {@link SimSpecification} object and call {@link #transform}.
+ * 
+ * @author Eric Hamann
+ */
 class SimulationModelTransform {
 	val SimSpecification source
 
+	// Keep a behavior container to avoid passing it through all create-methods
 	BehaviorContainer behavior
 
 	new(SimSpecification source) {
 		this.source = source
 	}
 
+	/**
+	 * Transforms the {@link SimSpecification} to a list of EObjects that represent the simulation
+	 * according to the modular simulation model (simspec.model).
+	 * 
+	 * @return A list of three objects: A {@link Simulator}, a {@link BehaviorContainer} 
+	 * and an {@link EnumDeclarationContainer}.
+	 */
 	def List<EObject> transform() {
 		val features = source.features
 		
@@ -54,8 +71,12 @@ class SimulationModelTransform {
 		#[sim, behavior, enums]
 	}
 
+	// events, schedules and writes are copied with custom copy-methods instead of an EcoreUtil.Copier,
+	// because the number of classes is quite low compared to expressions and Xtend create-methods 
+	// are easier to implement than a custom EcoreUtil.copier.
+	
 	private def create result: StructureFactory.eINSTANCE.createEvent transformEvent(Event e) {
-		e.copyNamedIdentifier(result)
+		e.copyNameAndIdentifierTo(result)
 		result.readAttributes.addAll(e.readAttributes.clone)
 
 		if (e instanceof GEvent) {
@@ -65,22 +86,28 @@ class SimulationModelTransform {
 	}
 
 	private def transformSchedules(GSchedules schedules, Event event) {
+		// get expressions or use default
+		val delayExpr = schedules.delaySpec?.delay ?: createDefaultDelay
+		val conditionExpr = schedules.conditionSpec?.condition ?: createDefaultCondition
+		
 		val sched = BehaviorFactory.eINSTANCE.createSchedules => [
 			startEvent = event
 			endEvent = transformEvent(schedules.endEvent)
-			// TODO: validate expression types
-			delay = copyExpression(schedules.delaySpec?.delay ?: createDefaultDelay)
-			condition = copyExpression(schedules.conditionSpec?.condition ?: createDefaultCondition)
+			
+			delay = copyExpression(delayExpr)
+			condition = copyExpression(conditionExpr)
 		]
 
 		behavior.schedules.add(sched)
 	}
 
 	private def transformWrites(GWritesAttribute writes, Event e) {
+		// get write condition or use default
+		val conditionExpr = writes.conditionSpec?.condition ?: createDefaultCondition
+		
 		val write = BehaviorFactory.eINSTANCE.createWritesAttribute => [
 			event = e
 			attribute = writes.writeFunction.attribute
-			// TODO: validate expression types
 			
 			val function = writes.writeFunction
 			writeFunction = switch (function) {
@@ -88,7 +115,7 @@ class SimulationModelTransform {
 				WriteToArray: createArrayWrite(function)
 			}
 			
-			condition = copyExpression(writes.conditionSpec?.condition ?: createDefaultCondition)
+			condition = copyExpression(conditionExpr)
 		]
 
 		behavior.writesAttributes.add(write)
@@ -104,6 +131,7 @@ class SimulationModelTransform {
 	}
 	
 	private def createArrayWrite(WriteToArray function) {
+		// Create an array writes expression where the array is a variable defined in the function-parameter.
 		ArrayoperationsFactory.eINSTANCE.createArrayWrite => [
 			type = EcoreUtil.copy(function.attribute.type)
 			array = ExpressionsFactory.eINSTANCE.createVariable => [
@@ -129,7 +157,7 @@ class SimulationModelTransform {
 		]	
 	}
 
-	private def copyNamedIdentifier(NamedIdentifier src, NamedIdentifier dest) {
+	private def copyNameAndIdentifierTo(NamedIdentifier src, NamedIdentifier dest) {
 		dest.id = src.id
 		dest.name = src.name
 	}

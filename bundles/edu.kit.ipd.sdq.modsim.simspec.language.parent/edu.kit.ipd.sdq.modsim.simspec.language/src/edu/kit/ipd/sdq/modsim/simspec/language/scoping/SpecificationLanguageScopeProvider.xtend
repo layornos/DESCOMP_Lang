@@ -21,6 +21,7 @@ import org.eclipse.xtext.scoping.Scopes
 
 import static extension org.eclipse.xtext.EcoreUtil2.*
 import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.WriteFunction
+import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.EnumLiteral
 
 /**
  * This class contains custom scoping description.
@@ -29,45 +30,57 @@ import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.WriteFuncti
  * on how and when to use it.
  */
 class SpecificationLanguageScopeProvider extends AbstractSpecificationLanguageScopeProvider {
-	
-	private def qualifiedAttributeName(Attribute attribute) {
-		QualifiedName.create(attribute.getContainerOfType(Entity).name, attribute.name)
-	}
-	
 	override getScope(EObject context, EReference reference) {
+		// ~~~~~~~~~~~~~ SCOPES USED IN EXPRESSIONS ~~~~~~~~~~~~~
+		
 		// scope of variable = read attributes of containing event
 		if (context instanceof Variable && reference == ExpressionsPackage.Literals.VARIABLE__ATTRIBUTE) {
 			val event = context.getContainerOfType(Event)
-			val attributes = event.readAttributes
-			return Scopes.scopeFor(attributes, super.getScope(context, reference))
+			return Scopes.scopeFor(event.readAttributes)
 		}
+		// scope of enum declarations = declarations in this and all used features
+		if (context instanceof EnumLiteral && reference == SpecificationLanguagePackage.Literals.ENUM_LITERAL__DECLARATION) {
+			val declarations = collectFromFeatures(context, [enums])
+			return Scopes.scopeFor(declarations) 
+		}
+		
+		
+		// ~~~~~~~~~~~~~ SCOPES USED IN EVENTS ~~~~~~~~~~~~~
 		
 		// scope of events = events in this and all used features
 		if (context instanceof GSchedules && reference == SpecificationLanguagePackage.Literals.GSCHEDULES__END_EVENT) {
-			val features = (context.getContainerOfType(SimFeature) as SimFeature).uses.map[feature]
-			val events = features.map[events].flatten
-			return Scopes.scopeFor(events, super.getScope(context, reference))
+			val events = collectFromFeatures(context, [events])
+			return Scopes.scopeFor(events)
 		}
+		
+		
+		// ~~~~~~~~~~~~~ READ AND WRITE ATTRIBUTES ~~~~~~~~~~~~~
 		
 		// scope of possible read attributes = attributes in this and all used features
 		if (context instanceof GEvent && reference == StructurePackage.Literals.EVENT__READ_ATTRIBUTES) {
-			val feature = context.getContainerOfType(SimFeature) as SimFeature
-			val uses = feature.uses.map[it.feature]
-			val entities = uses.map[entities].flatten + feature.entities
+			val attributes = collectFromFeatures(context, [entities.map[attributes].flatten])
 			// custom qualified names are necessary for "Entity.Attribute" syntax			
-			return Scopes.scopeFor(entities.map[attributes].flatten, [qualifiedAttributeName], IScope.NULLSCOPE)
+			return Scopes.scopeFor(attributes, [qualifiedAttributeName], IScope.NULLSCOPE)
 		}
-		
 		// scope of possible write attributes = attributes in this and all used features (similar to read attributes)
 		if (context instanceof WriteFunction && reference == SpecificationLanguagePackage.Literals.WRITE_FUNCTION__ATTRIBUTE) {
-			val feature = context.getContainerOfType(SimFeature) as SimFeature
-			val uses = feature.uses.map[it.feature]
-			val entities = uses.map[entities].flatten + feature.entities
+			val attributes = collectFromFeatures(context, [entities.map[attributes].flatten])
 			// custom qualified names are necessary for "Entity.Attribute" syntax			
-			return Scopes.scopeFor(entities.map[attributes].flatten, [qualifiedAttributeName], IScope.NULLSCOPE)
+			return Scopes.scopeFor(attributes, [qualifiedAttributeName], IScope.NULLSCOPE)
 		}
 		
 		super.getScope(context, reference)
 	}
 	
+	// returns Entity.Attribute as the qualified name for an attribute
+	private def qualifiedAttributeName(Attribute attribute) {
+		QualifiedName.create(attribute.getContainerOfType(Entity).name, attribute.name)
+	}
+	
+	// returns all elements in the lists specified by collector from this and all used features
+	private def <T extends EObject> collectFromFeatures(EObject context, (SimFeature)=>Iterable<T> collector) {
+		val feature = context.getContainerOfType(SimFeature)
+		val uses = feature.uses.map[it.feature]
+		(uses + #[feature]).map(collector).flatten
+	}
 }

@@ -6,6 +6,11 @@ import edu.kit.ipd.sdq.modsim.simspec.model.behavior.Expression
 import java.util.Set
 import edu.kit.ipd.sdq.modsim.simspec.language.specificationLanguage.DefinitionReference
 
+/**
+ * Contains static utility methods for working with {@link Definition} objects.
+ * 
+ * @author Eric Hamann
+ */
 class DefinitionUtil {
 	/**
 	 * Checks if the syntax tree of a given {@link Definition} contains a cycle, i.e. if the definition directly
@@ -19,10 +24,10 @@ class DefinitionUtil {
 		val visited = new HashSet<Definition>
 		val finished = new HashSet<Definition>
 		
-		return cycleDFS(definition.expression, visited, finished)
+		return containsCycleDFS(definition.expression, visited, finished)
 	}
 	
-	private static def boolean cycleDFS(Expression expr, Set<Definition> visited, Set<Definition> finished) {
+	private static def boolean containsCycleDFS(Expression expr, Set<Definition> visited, Set<Definition> finished) {
 		// get all children of this expression, contents AND references (definition cycles only exist through references)
 		val children = (expr.eContents + expr.eCrossReferences).filter(Expression)
 		
@@ -33,13 +38,13 @@ class DefinitionUtil {
 			
 			visited.add(expr.definition)
 			// recursively search for cycles in the expression of the referenced definition
-			val containsCycles = cycleDFS(expr.definition.expression, visited, finished)
+			val containsCycles = containsCycleDFS(expr.definition.expression, visited, finished)
 			finished.add(expr.definition)
 			
 			return containsCycles
 		}
 				
 		// otherwise just check all children for cycles
-		return children.map[cycleDFS(visited, finished)].exists[it]
+		return children.map[containsCycleDFS(visited, finished)].exists[it]
 	}
 }

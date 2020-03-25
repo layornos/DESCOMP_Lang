@@ -156,7 +156,6 @@ class SMTGenerator {
 	}
 	
 	private def dispatch String generateExpression(ArrayWrite write) {
-		//TODO: change when array write has its own typing rule
 		val type = (write.array.type as ArrayDataType).contentType
 		val array = write.array.generateExpression
 		val index = write.index.generateExpression
