@@ -4,7 +4,7 @@ import org.eclipse.debug.ui.ILaunchShortcut
 import org.eclipse.jface.viewers.ISelection
 import org.eclipse.ui.IEditorPart
 import org.eclipse.jface.viewers.IStructuredSelection
-import edu.kit.ipd.sdq.modsim.simspec.export.DescompExport
+import edu.kit.ipd.sdq.modsim.simspec.export.descomp.DescompExport
 import java.util.Properties
 import java.io.FileReader
 import java.io.FileNotFoundException

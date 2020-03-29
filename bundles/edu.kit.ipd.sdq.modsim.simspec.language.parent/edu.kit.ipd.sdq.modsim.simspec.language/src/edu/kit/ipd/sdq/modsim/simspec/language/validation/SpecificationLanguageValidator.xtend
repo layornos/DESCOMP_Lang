@@ -22,16 +22,4 @@ class SpecificationLanguageValidator extends AbstractSpecificationLanguageValida
 				ExpressionsPackage.Literals.CONSTANT__VALUE)
 		}
 	}
-	
-//	
-//	public static val INVALID_NAME = 'invalidName'
-//
-//	@Check
-//	def checkGreetingStartsWithCapital(Greeting greeting) {
-//		if (!Character.isUpperCase(greeting.name.charAt(0))) {
-//			warning('Name should start with a capital', 
-//					SpecificationLanguagePackage.Literals.GREETING__NAME,
-//					INVALID_NAME)
-//		}
-//	}
 }
