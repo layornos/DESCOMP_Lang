@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="ASCII"?>
+<xmi:XMI xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:behavior="http://www.example.org/behavior" xmlns:datatypes="http://www.example.org/datatypes" xmlns:expressions="http://www.example.org/expressions" xmlns:structure="http://www.example.org/structure">
+  <structure:Simulator id="_hNNmwHEKEeqx2beb-xLnNg" name="TestSim">
+    <entities id="_hNMYoHEKEeqx2beb-xLnNg" name="Entity">
+      <attributes id="_hNMYoXEKEeqx2beb-xLnNg" name="value">
+        <type xsi:type="datatypes:BaseDataType"/>
+      </attributes>
+      <attributes id="_hNMYonEKEeqx2beb-xLnNg" name="other">
+        <type xsi:type="datatypes:EnumType" declaration="/2/@declarations.0"/>
+      </attributes>
+    </entities>
+    <events id="_hNMYo3EKEeqx2beb-xLnNg" name="Variables" readAttributes="_hNMYoXEKEeqx2beb-xLnNg"/>
+    <events id="_hNMYpHEKEeqx2beb-xLnNg" name="Types"/>
+    <events id="_hNMYpXEKEeqx2beb-xLnNg" name="Arithmetic" readAttributes="_hNMYoXEKEeqx2beb-xLnNg"/>
+  </structure:Simulator>
+  <behavior:BehaviorContainer>
+    <writesAttributes attribute="_hNMYonEKEeqx2beb-xLnNg" event="_hNMYpHEKEeqx2beb-xLnNg">
+      <condition xsi:type="expressions:Constant" value="true">
+        <type xsi:type="datatypes:BaseDataType" primitiveType="BOOL"/>
+      </condition>
+      <writeFunction xsi:type="expressions:Constant" value="A">
+        <type xsi:type="datatypes:EnumType" declaration="/2/@declarations.0"/>
+      </writeFunction>
+    </writesAttributes>
+    <schedules startEvent="_hNMYo3EKEeqx2beb-xLnNg" endEvent="_hNMYo3EKEeqx2beb-xLnNg">
+      <condition xsi:type="expressions:Constant" value="true">
+        <type xsi:type="datatypes:BaseDataType" primitiveType="BOOL"/>
+      </condition>
+      <delay xsi:type="expressions:Variable" attribute="_hNMYoXEKEeqx2beb-xLnNg">
+        <type xsi:type="datatypes:BaseDataType"/>
+      </delay>
+    </schedules>
+    <schedules startEvent="_hNMYpXEKEeqx2beb-xLnNg" endEvent="_hNMYpXEKEeqx2beb-xLnNg">
+      <condition xsi:type="expressions:Constant" value="true">
+        <type xsi:type="datatypes:BaseDataType" primitiveType="BOOL"/>
+      </condition>
+      <delay xsi:type="expressions:BinaryOperation">
+        <type xsi:type="datatypes:BaseDataType" primitiveType="DOUBLE"/>
+        <left xsi:type="expressions:Variable" attribute="_hNMYoXEKEeqx2beb-xLnNg">
+          <type xsi:type="datatypes:BaseDataType"/>
+        </left>
+        <right xsi:type="expressions:BinaryOperation" operator="MULT">
+          <type xsi:type="datatypes:BaseDataType" primitiveType="DOUBLE"/>
+          <left xsi:type="expressions:Constant" value="2">
+            <type xsi:type="datatypes:BaseDataType"/>
+          </left>
+          <right xsi:type="expressions:Constant" value="4.0">
+            <type xsi:type="datatypes:BaseDataType" primitiveType="DOUBLE"/>
+          </right>
+        </right>
+      </delay>
+    </schedules>
+  </behavior:BehaviorContainer>
+  <datatypes:EnumDeclarationContainer>
+    <declarations name="Type">
+      <literals>A</literals>
+      <literals>B</literals>
+    </declarations>
+  </datatypes:EnumDeclarationContainer>
+</xmi:XMI>

@@ -1,0 +1,25 @@
+feature F
+
+datatype Type {
+    A, B
+}
+
+entity Entity {
+    value: INT
+    other: Type
+}
+
+event Variables {
+    reads Entity.value
+    schedules Variables with delay = value
+}
+
+event Types {
+    writes Entity.other = Type.A
+}
+
+event Arithmetic {
+    reads Entity.value
+    schedules Arithmetic with delay = value + 2 * 4.0
+}
+
